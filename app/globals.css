@@ -32,8 +32,47 @@ a { color: inherit; }
 }
 
 .chat-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
   padding: 24px 24px 16px;
   border-bottom: 1px solid var(--border);
+}
+
+.session-badge {
+  max-width: 280px;
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  text-align: right;
+}
+
+.session-badge p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.session-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.session-pill-live {
+  background: #e7f7ef;
+  color: #0f7a43;
+}
+
+.session-pill-pending {
+  background: #f0f4fb;
+  color: var(--muted);
 }
 
 .eyebrow {
@@ -178,4 +217,25 @@ a { color: inherit; }
   margin: 12px 0 0;
   color: var(--danger);
   font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .chat-header {
+    flex-direction: column;
+  }
+
+  .session-badge {
+    max-width: none;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .message {
+    max-width: 100%;
+  }
+
+  .composer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

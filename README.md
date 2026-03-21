@@ -94,6 +94,11 @@ The system should:
 - pass that identifier into the RAG backend / Dify layer
 - preserve per-user query history from day one
 
+Current scaffold status:
+- iframe host can pass `{ type: 'kinetikos:set-user', userId, displayName? }` via `postMessage`
+- chat requests forward `userId` to the API layer
+- the API appends local JSONL usage records to `data/usage-log.jsonl` as a temporary MVP logging bridge
+
 ### Japanese UX requirements
 The system must:
 - support IME composition correctly
@@ -139,7 +144,20 @@ This repository will hold:
 
 ## Current Status
 
-This repository is the starting point for building the Kinetikos Knowledge Copilot MVP.
+This repository now includes a grounded mock chat thin slice, IME-safe composer behavior, and an initial user-linking / usage-logging scaffold for embedded deployment.
+
+Example host handoff:
+
+```ts
+iframe.contentWindow?.postMessage(
+  {
+    type: 'kinetikos:set-user',
+    userId: 'member-123',
+    displayName: 'David',
+  },
+  '*',
+);
+```
 
 The immediate next step is to translate the concept into:
 - build-ready docs

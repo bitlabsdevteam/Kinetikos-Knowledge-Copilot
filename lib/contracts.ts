@@ -19,10 +19,12 @@ export type ChatRequest = {
   message: string;
   history: Array<Pick<ChatMessage, 'role' | 'text'>>;
   userId?: string;
+  userDisplayName?: string;
 };
 
 export type ChatResponse = {
   answer: string;
   citations: Citation[];
   grounded: boolean;
+  sessionUserId?: string | null;
 };

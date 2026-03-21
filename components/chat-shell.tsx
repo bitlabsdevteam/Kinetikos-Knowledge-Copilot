@@ -1,8 +1,9 @@
 'use client';
 
-import { KeyboardEvent, useMemo, useState } from 'react';
+import { KeyboardEvent, useEffect, useMemo, useState } from 'react';
 
 import type { ChatMessage, ChatResponse } from '@/lib/contracts';
+import { HOST_USER_EVENT_TYPE, isHostUserPayload } from '@/lib/host-user';
 
 const starterMessages: ChatMessage[] = [
   {
@@ -18,6 +19,26 @@ export function ChatShell() {
   const [isComposing, setIsComposing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent<unknown>) => {
+      if (!isHostUserPayload(event.data)) {
+        return;
+      }
+
+      setUserId(event.data.userId);
+      setUserDisplayName(event.data.displayName ?? null);
+    };
+
+    window.addEventListener('message', handleMessage);
+    window.parent?.postMessage({ type: HOST_USER_EVENT_TYPE, status: 'ready' }, '*');
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
@@ -50,6 +71,8 @@ export function ChatShell() {
         body: JSON.stringify({
           message: text,
           history: nextHistory.map(({ role, text: messageText }) => ({ role, text: messageText })),
+          userId: userId ?? undefined,
+          userDisplayName: userDisplayName ?? undefined,
         }),
       });
 
@@ -96,6 +119,16 @@ export function ChatShell() {
             <p className="eyebrow">Kinetikos</p>
             <h1>Knowledge Copilot</h1>
             <p className="subtitle">Japanese-first grounded RAG MVP scaffold</p>
+          </div>
+          <div className="session-badge" aria-live="polite">
+            <span className={`session-pill ${userId ? 'session-pill-live' : 'session-pill-pending'}`}>
+              {userId ? 'User linked' : 'Waiting for host user'}
+            </span>
+            <p>
+              {userId
+                ? `${userDisplayName ?? userId} として利用ログを紐づけます。`
+                : '埋め込み元から userId を受け取ると利用ログに紐づけます。'}
+            </p>
           </div>
         </header>
 
