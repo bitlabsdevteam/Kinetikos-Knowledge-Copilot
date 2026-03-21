@@ -7,11 +7,13 @@
   --primary: #175fe9;
   --primary-soft: #e8f0ff;
   --border: #dde4f0;
+  --danger: #c53b3b;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
 button, textarea { font: inherit; }
+a { color: inherit; }
 
 .page-shell {
   min-height: 100vh;
@@ -92,6 +94,43 @@ button, textarea { font: inherit; }
   white-space: pre-wrap;
 }
 
+.citation-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.citation-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(23, 95, 233, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+}
+
+.citation-card strong {
+  font-size: 14px;
+}
+
+.citation-card span {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+}
+
+.citation-card p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.loading-state {
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .composer {
   border-top: 1px solid var(--border);
   padding: 20px 24px 24px;
@@ -133,4 +172,10 @@ button, textarea { font: inherit; }
 .composer button:disabled {
   background: #a8b6d8;
   cursor: not-allowed;
+}
+
+.composer-error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 14px;
 }

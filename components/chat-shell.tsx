@@ -2,41 +2,79 @@
 
 import { KeyboardEvent, useMemo, useState } from 'react';
 
-type Message = {
-  id: string;
-  role: 'user' | 'assistant';
-  text: string;
-};
+import type { ChatMessage, ChatResponse } from '@/lib/contracts';
 
-const starterMessages: Message[] = [
+const starterMessages: ChatMessage[] = [
   {
     id: 'welcome',
     role: 'assistant',
-    text: 'こんにちは。Kinetikos Knowledge Copilot の初期UIです。ここから Dify 連携、引用表示、会話メモリ、ログ連携を実装していきます。',
+    text: 'こんにちは。Kinetikos Knowledge Copilot の grounded chat thin slice です。現在はモック知識ベース経由で、根拠がある時だけ引用付きで回答します。',
   },
 ];
 
 export function ChatShell() {
-  const [messages, setMessages] = useState<Message[]>(starterMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const canSend = useMemo(() => input.trim().length > 0 && !isComposing, [input, isComposing]);
+  const canSend = useMemo(
+    () => input.trim().length > 0 && !isComposing && !isSubmitting,
+    [input, isComposing, isSubmitting],
+  );
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const text = input.trim();
-    if (!text || isComposing) return;
+    if (!text || isComposing || isSubmitting) return;
 
-    setMessages((current) => [
-      ...current,
-      { id: crypto.randomUUID(), role: 'user', text },
-      {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        text: 'プレースホルダー応答です。次に Dify API と grounded citations を接続します。',
-      },
-    ]);
+    const nextUserMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      text,
+    };
+
+    const nextHistory = [...messages, nextUserMessage];
+
+    setMessages(nextHistory);
     setInput('');
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: text,
+          history: nextHistory.map(({ role, text: messageText }) => ({ role, text: messageText })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('chat request failed');
+      }
+
+      const payload = (await response.json()) as ChatResponse;
+
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          text: payload.answer,
+          citations: payload.citations,
+        },
+      ]);
+    } catch {
+      setError('応答の取得に失敗しました。API 接続を確認してください。');
+      setMessages((current) => current.filter((message) => message.id !== nextUserMessage.id));
+      setInput(text);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -46,7 +84,7 @@ export function ChatShell() {
         return;
       }
       event.preventDefault();
-      sendMessage();
+      void sendMessage();
     }
   };
 
@@ -66,8 +104,26 @@ export function ChatShell() {
             <article key={message.id} className={`message message-${message.role}`}>
               <span className="message-role">{message.role === 'assistant' ? 'AI' : 'You'}</span>
               <p>{message.text}</p>
+              {message.citations && message.citations.length > 0 ? (
+                <div className="citation-list">
+                  {message.citations.map((citation) => (
+                    <a
+                      key={citation.id}
+                      className="citation-card"
+                      href={citation.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <strong>{citation.title}</strong>
+                      <span>{citation.sourceType}</span>
+                      <p>{citation.excerpt}</p>
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </article>
           ))}
+          {isSubmitting ? <div className="loading-state">回答を整理しています…</div> : null}
         </div>
 
         <footer className="composer">
@@ -82,10 +138,11 @@ export function ChatShell() {
           />
           <div className="composer-actions">
             <span className="composer-hint">IME-safe Enter handling is enabled.</span>
-            <button type="button" onClick={sendMessage} disabled={!canSend}>
-              Send
+            <button type="button" onClick={() => void sendMessage()} disabled={!canSend}>
+              {isSubmitting ? 'Sending…' : 'Send'}
             </button>
           </div>
+          {error ? <p className="composer-error">{error}</p> : null}
         </footer>
       </section>
     </main>
