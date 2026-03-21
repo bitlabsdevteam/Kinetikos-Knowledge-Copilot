@@ -1,0 +1,136 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #162033;
+  --muted: #6a768a;
+  --primary: #175fe9;
+  --primary-soft: #e8f0ff;
+  --border: #dde4f0;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
+button, textarea { font: inherit; }
+
+.page-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+
+.chat-card {
+  width: min(920px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(21, 35, 61, 0.08);
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat-header h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.message-list {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+}
+
+.message {
+  max-width: 80%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+}
+
+.message-user {
+  margin-left: auto;
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.message-assistant {
+  background: var(--primary-soft);
+}
+
+.message-role {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  opacity: 0.75;
+}
+
+.message p {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.composer {
+  border-top: 1px solid var(--border);
+  padding: 20px 24px 24px;
+}
+
+.composer textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #fff;
+  min-height: 112px;
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.composer-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.composer button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.composer button:disabled {
+  background: #a8b6d8;
+  cursor: not-allowed;
+}
