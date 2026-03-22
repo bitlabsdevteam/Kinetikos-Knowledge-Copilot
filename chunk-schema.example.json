@@ -1,0 +1,47 @@
+{
+  "chunk_id": "doc_mbg_ch_01_sec_intro_0001",
+  "document_id": "3f2f8ce8-8b57-4d19-bb42-8cb2eec0b001",
+  "tenant_id": "global_kinetikos",
+  "document_title": "Muscle Building Guide",
+  "source_file_name": "mbg.pdf",
+  "source_type": "pdf_manual",
+  "language": "en",
+  "chapter_title": "An Introduction to Muscle Growth",
+  "chapter_order": 1,
+  "section_title": "How to Achieve Muscle Growth",
+  "section_order": 3,
+  "content_role": "conceptual",
+  "topic_tags": [
+    "muscle_growth",
+    "resistance_training",
+    "beginner_guidance"
+  ],
+  "keywords": [
+    "muscle growth",
+    "weight training",
+    "resistance training"
+  ],
+  "page_start": 3,
+  "page_end": 3,
+  "chunk_index": 1,
+  "char_count": 1842,
+  "token_count": 612,
+  "overlap_from_previous": false,
+  "overlap_to_next": true,
+  "text_preview": "There are no shortcuts to building muscle, but if you follow these pointers you'll soon start to see the difference...",
+  "text_content": "Full chunk text goes here.",
+  "metadata": {
+    "section_path": [
+      "Week One",
+      "An Introduction to Muscle Growth",
+      "How to Achieve Muscle Growth"
+    ],
+    "source_anchor": "page-3",
+    "retrieval_priority": "normal",
+    "is_front_matter": false,
+    "is_actionable_guidance": false,
+    "embedding_ready": true
+  },
+  "embedding_model": "text-embedding-3-large",
+  "created_at": "2026-03-22T02:00:00.000Z"
+}
