@@ -46,7 +46,16 @@ Check that these exist:
 - table `ingestion_runs`
 - table `retrieval_logs`
 - function `match_document_chunks`
-- ivfflat vector index on `document_chunks.embedding`
+- HNSW halfvec-based index on `document_chunks.embedding`
+
+## Important note for OpenAI 3072-d embeddings
+If you use `text-embedding-3-large`, the index must not be created as `ivfflat` on `vector(3072)`.
+Use:
+- `using hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops)`
+
+Reason:
+- indexed raw `vector` columns are limited to 2000 dimensions
+- `halfvec` supports up to 4000 dimensions
 
 ## Recommended first DB smoke test
 After migration:

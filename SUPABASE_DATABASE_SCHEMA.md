@@ -204,7 +204,11 @@ Use GIN indexes on:
 - `topic_tags`
 
 ### Vector index
-Use `ivfflat` on the embedding column for similarity search.
+For `text-embedding-3-large` (3072 dimensions), do **not** use `ivfflat` directly on the raw `vector(3072)` column.
+Use an **HNSW index on a halfvec cast** instead:
+- `using hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops)`
+
+This is required because indexed raw `vector` columns are limited to 2000 dimensions, while `halfvec` supports up to 4000 dimensions.
 
 ## Blunt conclusion
 This Supabase design is built to support:

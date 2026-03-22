@@ -62,8 +62,7 @@ create index if not exists idx_chunks_topic_tags on document_chunks using gin (t
 
 create index if not exists idx_chunks_embedding_cosine
 on document_chunks
-using ivfflat (embedding vector_cosine_ops)
-with (lists = 100);
+using hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);
 
 create table if not exists ingestion_runs (
   id uuid primary key default gen_random_uuid(),
