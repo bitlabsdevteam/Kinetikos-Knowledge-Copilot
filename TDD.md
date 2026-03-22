@@ -102,6 +102,109 @@ But default recommendation remains:
 - support synthesis across multiple chunks
 - avoid over-reliance on one retrieved passage
 
+## 8. Chunking Strategy Reference (from reviewed Colab, not a strict template)
+A structural chunking Colab was reviewed as reference material only.
+Kaito should learn from it, but does **not** need to follow it 100%.
+The goal is to create the **best chunking strategy for this product**, not to copy a notebook blindly.
+
+### Useful ideas worth borrowing from the Colab
+- use **PyMuPDF** for page-aware PDF extraction
+- preprocess document text before embedding
+- preserve page-level source information during extraction
+- convert extracted content into structured chunk objects
+- embed in **batches** rather than one-by-one when possible
+- keep retrieval and answer-generation as separate stages
+- always embed queries with the same embedding model used for stored chunks
+- preserve retrieval traceability back to source chunks/pages
+
+### What should *not* be copied blindly
+- chapter-based chunking as a universal default
+- English-first assumptions about page text and sentence boundaries
+- simplistic token estimation heuristics as the final production logic
+- local notebook-specific workflow choices that do not fit Supabase/OpenAI/Dify production design
+- any chunking choice that weakens Japanese retrieval quality or citation clarity
+
+### Kaito's production chunking stance
+For this project, chunking must be:
+- content-type aware
+- metadata-rich
+- citation-friendly
+- optimized for Japanese retrieval quality
+- optimized for end-to-end grounded answering
+
+### Recommended chunking policy by content type
+#### PDF manuals / ebooks / guides
+Use **section-aware semantic chunking**.
+
+Preferred approach:
+1. extract text page by page with PyMuPDF
+2. identify front matter separately
+3. detect heading / section boundaries where possible
+4. group paragraphs into coherent section blocks
+5. split only if a section becomes too large for precise retrieval
+6. preserve page, chapter, and section metadata
+
+#### Why this is better than naive chapter chunking
+Many PDFs contain:
+- title pages
+- table of contents
+- short conceptual explanations
+- actionable step blocks
+- repeated layout noise
+
+A pure chapter chunk can become too large and too broad for precise retrieval.
+For MVP RAG quality, smaller semantic section blocks are usually better than giant chapter blobs.
+
+### Recommended chunk size policy
+These are heuristics, not hard laws:
+- preferred chunk target: **500-900 tokens**
+- soft minimum: **250-350 tokens**
+- soft maximum before splitting: **1000-1200 tokens**
+- overlap: **10-15% only when continuity matters**
+
+### Recommended metadata per chunk
+Each chunk should keep:
+- `document_id`
+- `document_title`
+- `source_file_name`
+- `source_type`
+- `chapter_title`
+- `section_title`
+- `page_start`
+- `page_end`
+- `content_role`
+- `chunk_index`
+- `chunk_id`
+- `topic_tags`
+- `keywords`
+- `embedding_model`
+
+### Retrieval implications
+The chunking design must help:
+- hybrid retrieval
+- reranking
+- citation rendering
+- follow-up question handling
+- grounded refusal when evidence is weak
+
+### Batch embedding guidance
+The Colab's batching idea is useful.
+For production:
+- embed chunks in batches
+- batch by token budget and content type where possible
+- keep deterministic chunk ids
+- store embeddings directly in Supabase
+- preserve ingestion-run observability
+
+### Final rule for Kaito
+The Colab is **reference-only**.
+Kaito's real task is to create the best chunking strategy for:
+- Kinetikos content
+- Japanese-first UX
+- OpenAI embeddings
+- Supabase vector retrieval
+- grounded answer generation
+
 ## 8. Context Engineering Requirements
 This project should be fully optimized from a context engineering perspective.
 
