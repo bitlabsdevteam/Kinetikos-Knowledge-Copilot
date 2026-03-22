@@ -14,7 +14,7 @@ const starterMessages: ChatMessage[] = [
       {
         id: 'demo-citation',
         title: 'Grounded Answering Policy',
-        sourceType: 'Knowledge rule',
+        sourceType: 'manual',
         excerpt: '回答は信頼できるソースに基づく内容のみを返し、十分な根拠がなければ曖昧さを明示します。',
         href: '#',
       },
