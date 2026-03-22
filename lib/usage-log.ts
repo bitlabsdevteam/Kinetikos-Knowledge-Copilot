@@ -5,6 +5,7 @@ import type { ChatResponse } from '@/lib/contracts';
 
 export type UsageLogEntry = {
   timestamp: string;
+  sessionId: string;
   userId: string | null;
   message: string;
   grounded: ChatResponse['grounded'];

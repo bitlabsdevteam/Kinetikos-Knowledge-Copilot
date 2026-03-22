@@ -15,9 +15,12 @@ export type Citation = {
   excerpt: string;
 };
 
+export type ChatHistoryEntry = Pick<ChatMessage, 'role' | 'text'>;
+
 export type ChatRequest = {
   message: string;
-  history: Array<Pick<ChatMessage, 'role' | 'text'>>;
+  history: ChatHistoryEntry[];
+  sessionId?: string;
   userId?: string;
   userDisplayName?: string;
 };
@@ -26,5 +29,6 @@ export type ChatResponse = {
   answer: string;
   citations: Citation[];
   grounded: boolean;
+  sessionId?: string;
   sessionUserId?: string | null;
 };

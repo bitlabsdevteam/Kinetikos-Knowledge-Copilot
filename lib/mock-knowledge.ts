@@ -1,4 +1,4 @@
-import type { ChatResponse, Citation } from '@/lib/contracts';
+import type { ChatHistoryEntry, ChatResponse, Citation } from '@/lib/contracts';
 
 type KnowledgeDoc = {
   id: string;
@@ -8,6 +8,11 @@ type KnowledgeDoc = {
   excerpt: string;
   keywords: string[];
   answer: string;
+};
+
+type KnowledgeLookupInput = {
+  message: string;
+  history?: ChatHistoryEntry[];
 };
 
 const knowledgeBase: KnowledgeDoc[] = [
@@ -53,18 +58,40 @@ const refusal: ChatResponse = {
   citations: [],
 };
 
-export function answerFromKnowledgeBase(message: string): ChatResponse {
-  const normalized = message.toLowerCase();
+function collectQueryContext(message: string, history: ChatHistoryEntry[] = []) {
+  const recentUserTurns = history
+    .filter((entry) => entry.role === 'user')
+    .slice(-3)
+    .map((entry) => entry.text.trim())
+    .filter(Boolean);
 
-  const matches = knowledgeBase.filter((doc) =>
-    doc.keywords.some((keyword) => normalized.includes(keyword.toLowerCase())),
-  );
+  return [message.trim(), ...recentUserTurns].join('\n');
+}
 
-  if (matches.length === 0) {
+function scoreDocument(doc: KnowledgeDoc, queryContext: string) {
+  return doc.keywords.reduce((score, keyword) => {
+    return queryContext.includes(keyword.toLowerCase()) ? score + 1 : score;
+  }, 0);
+}
+
+export function answerFromKnowledgeBase({ message, history = [] }: KnowledgeLookupInput): ChatResponse {
+  const queryContext = collectQueryContext(message, history).toLowerCase();
+
+  const rankedMatches = knowledgeBase
+    .map((doc) => ({
+      doc,
+      score: scoreDocument(doc, queryContext),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score);
+
+  if (rankedMatches.length === 0) {
     return refusal;
   }
 
-  const citations: Citation[] = matches.slice(0, 2).map((doc) => ({
+  const selected = rankedMatches.slice(0, 2).map((entry) => entry.doc);
+
+  const citations: Citation[] = selected.map((doc) => ({
     id: doc.id,
     title: doc.title,
     sourceType: doc.sourceType,
@@ -72,10 +99,7 @@ export function answerFromKnowledgeBase(message: string): ChatResponse {
     excerpt: doc.excerpt,
   }));
 
-  const answer = matches
-    .slice(0, 2)
-    .map((doc) => doc.answer)
-    .join('\n\n');
+  const answer = selected.map((doc) => doc.answer).join('\n\n');
 
   return {
     grounded: true,

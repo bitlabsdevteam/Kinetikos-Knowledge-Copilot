@@ -30,6 +30,7 @@ export function ChatShell() {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+  const [sessionId] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -80,6 +81,7 @@ export function ChatShell() {
         body: JSON.stringify({
           message: text,
           history: nextHistory.map(({ role, text: messageText }) => ({ role, text: messageText })),
+          sessionId,
           userId: userId ?? undefined,
           userDisplayName: userDisplayName ?? undefined,
         }),
@@ -145,6 +147,7 @@ export function ChatShell() {
                 ? `${userDisplayName ?? userId} として利用ログを紐づけます。`
                 : '埋め込み元から userId を受け取ると、利用ログと会話履歴を紐づけます。'}
             </p>
+            <p>Session ID: {sessionId.slice(0, 8)}</p>
           </div>
 
           <div className="rail-card">
