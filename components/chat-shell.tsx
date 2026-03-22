@@ -9,7 +9,16 @@ const starterMessages: ChatMessage[] = [
   {
     id: 'welcome',
     role: 'assistant',
-    text: 'こんにちは。Kinetikos Knowledge Copilot の grounded chat thin slice です。現在はモック知識ベース経由で、根拠がある時だけ引用付きで回答します。',
+    text: 'こんにちは。Kinetikos Knowledge Copilot へようこそ。必要な情報だけを静かに整理し、根拠が確認できる内容に絞って日本語でご案内します。',
+    citations: [
+      {
+        id: 'demo-citation',
+        title: 'Grounded Answering Policy',
+        sourceType: 'Knowledge rule',
+        excerpt: '回答は信頼できるソースに基づく内容のみを返し、十分な根拠がなければ曖昧さを明示します。',
+        href: '#',
+      },
+    ],
   },
 ];
 
@@ -92,7 +101,7 @@ export function ChatShell() {
         },
       ]);
     } catch {
-      setError('応答の取得に失敗しました。API 接続を確認してください。');
+      setError('応答の取得に失敗しました。API 接続と設定を確認してください。');
       setMessages((current) => current.filter((message) => message.id !== nextUserMessage.id));
       setInput(text);
     } finally {
@@ -113,70 +122,135 @@ export function ChatShell() {
 
   return (
     <main className="page-shell">
-      <section className="chat-card">
-        <header className="chat-header">
-          <div>
+      <div className="ambient-orb ambient-orb-left" aria-hidden="true" />
+      <div className="ambient-orb ambient-orb-right" aria-hidden="true" />
+
+      <section className="experience-frame">
+        <aside className="info-rail">
+          <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Knowledge Copilot</h1>
-            <p className="subtitle">Japanese-first grounded RAG MVP scaffold</p>
+            <p className="subtitle">
+              Japanese-first grounded RAG experience for premium educational guidance.
+            </p>
           </div>
-          <div className="session-badge" aria-live="polite">
-            <span className={`session-pill ${userId ? 'session-pill-live' : 'session-pill-pending'}`}>
-              {userId ? 'User linked' : 'Waiting for host user'}
-            </span>
+
+          <div className="rail-card">
+            <span className="rail-label">Session</span>
+            <div className={`session-pill ${userId ? 'session-pill-live' : 'session-pill-pending'}`}>
+              {userId ? 'User linked' : 'Awaiting host user'}
+            </div>
             <p>
               {userId
                 ? `${userDisplayName ?? userId} として利用ログを紐づけます。`
-                : '埋め込み元から userId を受け取ると利用ログに紐づけます。'}
+                : '埋め込み元から userId を受け取ると、利用ログと会話履歴を紐づけます。'}
             </p>
           </div>
-        </header>
 
-        <div className="message-list">
-          {messages.map((message) => (
-            <article key={message.id} className={`message message-${message.role}`}>
-              <span className="message-role">{message.role === 'assistant' ? 'AI' : 'You'}</span>
-              <p>{message.text}</p>
-              {message.citations && message.citations.length > 0 ? (
-                <div className="citation-list">
-                  {message.citations.map((citation) => (
-                    <a
-                      key={citation.id}
-                      className="citation-card"
-                      href={citation.href}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <strong>{citation.title}</strong>
-                      <span>{citation.sourceType}</span>
-                      <p>{citation.excerpt}</p>
-                    </a>
-                  ))}
-                </div>
-              ) : null}
-            </article>
-          ))}
-          {isSubmitting ? <div className="loading-state">回答を整理しています…</div> : null}
-        </div>
-
-        <footer className="composer">
-          <textarea
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={onKeyDown}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => setIsComposing(false)}
-            placeholder="日本語で質問してください…"
-            rows={4}
-          />
-          <div className="composer-actions">
-            <span className="composer-hint">IME-safe Enter handling is enabled.</span>
-            <button type="button" onClick={() => void sendMessage()} disabled={!canSend}>
-              {isSubmitting ? 'Sending…' : 'Send'}
-            </button>
+          <div className="rail-card">
+            <span className="rail-label">Design intent</span>
+            <ul className="principle-list">
+              <li>Grounded answers only</li>
+              <li>Clean citations with source clarity</li>
+              <li>Japanese-native chat behavior</li>
+              <li>Premium, calm, high-trust interface</li>
+            </ul>
           </div>
-          {error ? <p className="composer-error">{error}</p> : null}
-        </footer>
+
+          <div className="rail-card rail-card-accent">
+            <span className="rail-label">Interaction note</span>
+            <p>
+              Enter sends the message only when IME composition is complete. Shift + Enter creates a
+              new line.
+            </p>
+          </div>
+        </aside>
+
+        <section className="chat-panel">
+          <header className="chat-panel-header">
+            <div>
+              <p className="panel-kicker">Grounded conversation</p>
+              <h2>Ask in Japanese. Receive traceable answers.</h2>
+            </div>
+            <div className="status-cluster">
+              <span className="status-dot" />
+              <span>Knowledge-backed mode</span>
+            </div>
+          </header>
+
+          <div className="message-list">
+            {messages.map((message) => (
+              <article key={message.id} className={`message-card message-${message.role}`}>
+                <div className="message-meta">
+                  <span className="message-role">{message.role === 'assistant' ? 'Copilot' : 'You'}</span>
+                  <span className="message-divider" />
+                  <span className="message-tone">
+                    {message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}
+                  </span>
+                </div>
+                <p>{message.text}</p>
+                {message.citations && message.citations.length > 0 ? (
+                  <div className="citation-list">
+                    {message.citations.map((citation) => (
+                      <a
+                        key={citation.id}
+                        className="citation-card"
+                        href={citation.href}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <div className="citation-head">
+                          <strong>{citation.title}</strong>
+                          <span>{citation.sourceType}</span>
+                        </div>
+                        <p>{citation.excerpt}</p>
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            ))}
+
+            {isSubmitting ? (
+              <div className="loading-state" aria-live="polite">
+                <span className="loading-line" />
+                <span>根拠を確認しながら回答を整理しています…</span>
+              </div>
+            ) : null}
+          </div>
+
+          <footer className="composer-shell">
+            <div className="composer-intro">
+              <span className="rail-label">Prompt</span>
+              <p>Ask naturally. The assistant should synthesize only what it can support with evidence.</p>
+            </div>
+
+            <div className="composer">
+              <textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={onKeyDown}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+                placeholder="例: このプログラムで筋肥大を優先する場合、最初に意識すべきポイントを整理して教えてください。"
+                rows={5}
+              />
+
+              <div className="composer-actions">
+                <div className="composer-hints">
+                  <span>IME-safe input</span>
+                  <span>Grounded citations</span>
+                  <span>Follow-up memory</span>
+                </div>
+                <button type="button" onClick={() => void sendMessage()} disabled={!canSend}>
+                  {isSubmitting ? 'Responding…' : 'Send message'}
+                </button>
+              </div>
+            </div>
+
+            {error ? <p className="composer-error">{error}</p> : null}
+          </footer>
+        </section>
       </section>
     </main>
   );
