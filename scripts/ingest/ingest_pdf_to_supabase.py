@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import re
 from dataclasses import dataclass
@@ -160,6 +161,82 @@ def read_pdf_pages(pdf_path: Path) -> List[Tuple[int, str]]:
     return out
 
 
+def llm_semantic_split(client: OpenAI, model: str, text: str, target_tokens: int = 750) -> List[str]:
+    min_tokens = max(200, int(target_tokens * 0.7))
+    max_tokens = int(target_tokens * 1.3)
+    prompt = (
+        "Split the text into semantically coherent chunks for RAG retrieval. "
+        f"Each chunk should be self-contained and around {min_tokens}-{max_tokens} tokens. "
+        "Return strict JSON array of strings only, no markdown."
+    )
+
+    response = client.chat.completions.create(
+        model=model,
+        temperature=0,
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": text[:16000]},
+        ],
+    )
+
+    raw = (response.choices[0].message.content or "[]").strip()
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, list):
+            return [str(x).strip() for x in parsed if str(x).strip()]
+    except Exception:
+        pass
+
+    # fallback: one chunk
+    return [text.strip()] if text.strip() else []
+
+
+def build_chunks_semantic_llm(
+    *,
+    source_path: str,
+    page_texts: List[Tuple[int, str]],
+    enc: tiktoken.Encoding,
+    client: OpenAI,
+    llm_model: str,
+    min_tokens: int,
+) -> List[Chunk]:
+    chunks: List[Chunk] = []
+    chunk_index = 0
+
+    for page_no, page_text in page_texts:
+        cleaned = clean_text(page_text)
+        if not cleaned:
+            continue
+
+        pieces = llm_semantic_split(
+            client,
+            llm_model,
+            cleaned,
+            target_tokens=DEFAULT_CHUNK_TARGET_TOKENS,
+        )
+        for piece in pieces:
+            tcount = token_len(enc, piece)
+            if tcount < min_tokens:
+                continue
+
+            raw_id = f"{source_path}|{page_no}|{chunk_index}|{piece}"
+            chunk_id = hashlib.sha1(raw_id.encode("utf-8")).hexdigest()
+            chunks.append(
+                Chunk(
+                    chunk_id=chunk_id,
+                    chunk_index=chunk_index,
+                    text_content=piece,
+                    token_count=tcount,
+                    char_count=len(piece),
+                    page_start=page_no,
+                    page_end=page_no,
+                )
+            )
+            chunk_index += 1
+
+    return chunks
+
+
 def ensure_document(
     sb: Client,
     *,
@@ -232,6 +309,13 @@ def main() -> None:
     parser.add_argument("--source-type", default="manual_pdf")
     parser.add_argument("--title", default=None)
     parser.add_argument("--batch-embed", type=int, default=DEFAULT_BATCH_EMBED)
+    parser.add_argument(
+        "--chunking",
+        choices=["sentence", "semantic_llm"],
+        default="semantic_llm",
+        help="Chunking strategy",
+    )
+    parser.add_argument("--chunk-llm-model", default=os.getenv("CHUNK_LLM_MODEL", "gpt-4o-mini"))
     args = parser.parse_args()
 
     supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
@@ -258,9 +342,13 @@ def main() -> None:
                 "tenant_id": tenant_id,
                 "source_file_name": pdf_path.name,
                 "source_type": args.source_type,
-                "parser_name": "pymupdf+sentence-chunker",
+                "parser_name": (
+                    "pymupdf+semantic-llm-chunker"
+                    if args.chunking == "semantic_llm"
+                    else "pymupdf+sentence-chunker"
+                ),
                 "embedding_model": embedding_model,
-                "chunking_strategy": "semantic_sentence_token_target",
+                "chunking_strategy": args.chunking,
                 "status": "started",
             }
         )
@@ -280,15 +368,25 @@ def main() -> None:
             page_count=len(page_texts),
         )
 
-        chunks = build_chunks(
-            source_path=str(pdf_path),
-            page_texts=page_texts,
-            enc=enc,
-            target_tokens=DEFAULT_CHUNK_TARGET_TOKENS,
-            max_tokens=DEFAULT_CHUNK_MAX_TOKENS,
-            overlap_tokens=DEFAULT_CHUNK_OVERLAP_TOKENS,
-            min_tokens=DEFAULT_MIN_CHUNK_TOKENS,
-        )
+        if args.chunking == "semantic_llm":
+            chunks = build_chunks_semantic_llm(
+                source_path=str(pdf_path),
+                page_texts=page_texts,
+                enc=enc,
+                client=oa,
+                llm_model=args.chunk_llm_model,
+                min_tokens=DEFAULT_MIN_CHUNK_TOKENS,
+            )
+        else:
+            chunks = build_chunks(
+                source_path=str(pdf_path),
+                page_texts=page_texts,
+                enc=enc,
+                target_tokens=DEFAULT_CHUNK_TARGET_TOKENS,
+                max_tokens=DEFAULT_CHUNK_MAX_TOKENS,
+                overlap_tokens=DEFAULT_CHUNK_OVERLAP_TOKENS,
+                min_tokens=DEFAULT_MIN_CHUNK_TOKENS,
+            )
 
         if not chunks:
             raise RuntimeError("No chunks generated. Check source file/text extraction.")
