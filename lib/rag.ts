@@ -165,12 +165,16 @@ export async function answerFromRAG({ message, history = [] }: RAGInput): Promis
     }
 
     const answer = await groundedSynthesis(message, chunks, history);
-    const grounded = answer !== REFUSAL_MESSAGE;
+    const normalized = answer.trim().toLowerCase();
+    const grounded =
+      normalized !== REFUSAL_MESSAGE.toLowerCase() &&
+      !normalized.startsWith("i don't know") &&
+      !normalized.startsWith('i do not know');
 
     return {
       grounded,
       answer,
-      citations: chunks.slice(0, 3).map(buildCitation),
+      citations: grounded ? chunks.slice(0, 3).map(buildCitation) : [],
     };
   } catch {
     return {
