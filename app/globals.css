@@ -222,7 +222,7 @@ a {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  align-items: start;
+  align-items: flex-start;
   padding: 28px 28px 18px;
   border-bottom: 1px solid var(--line);
 }
@@ -457,6 +457,58 @@ a {
   margin: 0;
   color: var(--danger);
   font-size: 0.95rem;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle {
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  min-width: 72px;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.toggle-on {
+  background: linear-gradient(135deg, #9de1ff, #6fb7ff);
+  color: #07131d;
+  border-color: rgba(157, 225, 255, 0.42);
+}
+
+.suggestion-list {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.suggestion-title {
+  width: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.suggestion-chip {
+  border: 1px solid rgba(142, 206, 255, 0.34);
+  border-radius: 999px;
+  background: rgba(91, 165, 222, 0.14);
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.suggestion-chip:hover {
+  background: rgba(91, 165, 222, 0.24);
 }
 
 @keyframes rise-in {

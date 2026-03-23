@@ -5,6 +5,7 @@ export type ChatMessage = {
   role: ChatRole;
   text: string;
   citations?: Citation[];
+  suggestedQuestions?: string[];
 };
 
 export type Citation = {
@@ -20,6 +21,7 @@ export type ChatHistoryEntry = Pick<ChatMessage, 'role' | 'text'>;
 export type ChatRequest = {
   message: string;
   history: ChatHistoryEntry[];
+  enableInternetSearch?: boolean;
   sessionId?: string;
   userId?: string;
   userDisplayName?: string;
@@ -29,6 +31,7 @@ export type ChatResponse = {
   answer: string;
   citations: Citation[];
   grounded: boolean;
+  suggestedQuestions?: string[];
   sessionId?: string;
   sessionUserId?: string | null;
 };

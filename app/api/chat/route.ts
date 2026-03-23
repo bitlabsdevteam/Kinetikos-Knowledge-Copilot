@@ -35,6 +35,7 @@ export async function POST(request: Request) {
   const response = await answerFromRAG({
     message,
     history,
+    enableInternetSearch: Boolean(body.enableInternetSearch),
   });
 
   await appendUsageLog({

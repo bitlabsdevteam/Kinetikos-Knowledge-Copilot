@@ -9,19 +9,23 @@ const starterMessages: ChatMessage[] = [
   {
     id: 'welcome',
     role: 'assistant',
-    text: "Welcome to Kinetikos Knowledge Copilot. I answer only from available sources. If evidence is missing, I will say: 'I don't know based on the available Kinetikos sources.'",
+    text: "Welcome to Kinetikos Clinical Copilot. I only answer with evidence. If evidence is missing, I will say: 'I don't know based on the available Kinetikos sources.'",
     citations: [],
   },
 ];
+
+const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
 
 export function ChatShell() {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+  const [enableInternetSearch, setEnableInternetSearch] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
@@ -36,22 +40,29 @@ export function ChatShell() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  useEffect(() => {
+    if (!isSubmitting) return;
+    const timer = setInterval(() => setLoadingStage((prev) => (prev + 1) % LOADING_STAGES.length), 1200);
+    return () => clearInterval(timer);
+  }, [isSubmitting]);
+
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
     [input, isComposing, isSubmitting],
   );
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (preset?: string) => {
+    const text = (preset ?? input).trim();
     if (!text || isComposing || isSubmitting) return;
 
     const nextUserMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', text };
     const nextHistory = [...messages, nextUserMessage];
 
     setMessages(nextHistory);
-    setInput('');
+    if (!preset) setInput('');
     setIsSubmitting(true);
     setError(null);
+    setLoadingStage(0);
 
     try {
       const response = await fetch('/api/chat', {
@@ -63,6 +74,7 @@ export function ChatShell() {
           sessionId,
           userId: userId ?? undefined,
           userDisplayName: userDisplayName ?? undefined,
+          enableInternetSearch,
         }),
       });
 
@@ -76,12 +88,13 @@ export function ChatShell() {
           role: 'assistant',
           text: payload.answer,
           citations: payload.citations,
+          suggestedQuestions: payload.suggestedQuestions,
         },
       ]);
     } catch {
       setError('Failed to fetch a response. Check API configuration and connectivity.');
       setMessages((current) => current.filter((message) => message.id !== nextUserMessage.id));
-      setInput(text);
+      if (!preset) setInput(text);
     } finally {
       setIsSubmitting(false);
     }
@@ -107,8 +120,8 @@ export function ChatShell() {
         <aside className="info-rail">
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
-            <h1>Knowledge Copilot</h1>
-            <p className="subtitle">English interface, grounded answers, and source-linked retrieval.</p>
+            <h1>Clinical Agentic RAG</h1>
+            <p className="subtitle">Elegant, evidence-first assistant for top-tier healthcare workflows.</p>
           </div>
 
           <div className="rail-card">
@@ -125,18 +138,21 @@ export function ChatShell() {
           </div>
 
           <div className="rail-card">
-            <span className="rail-label">Grounding policy</span>
-            <ul className="principle-list">
-              <li>Use retrieved evidence only</li>
-              <li>Show clean source citations</li>
-              <li>No unsupported claims</li>
-              <li>If uncertain: "I don't know"</li>
-            </ul>
-          </div>
-
-          <div className="rail-card rail-card-accent">
-            <span className="rail-label">Interaction note</span>
-            <p>Enter sends only when IME composition is complete. Shift + Enter adds a new line.</p>
+            <span className="rail-label">Agent controls</span>
+            <label className="toggle-row">
+              <span>Enable Internet Search</span>
+              <button
+                type="button"
+                className={`toggle ${enableInternetSearch ? 'toggle-on' : ''}`}
+                onClick={() => setEnableInternetSearch((v) => !v)}
+              >
+                {enableInternetSearch ? 'ON' : 'OFF'}
+              </button>
+            </label>
+            <p>
+              OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is
+              insufficient.
+            </p>
           </div>
         </aside>
 
@@ -144,11 +160,11 @@ export function ChatShell() {
           <header className="chat-panel-header">
             <div>
               <p className="panel-kicker">Grounded conversation</p>
-              <h2>Ask anything in English. Answers stay source-bound.</h2>
+              <h2>Ask clinical questions. Get source-bound answers.</h2>
             </div>
             <div className="status-cluster">
               <span className="status-dot" />
-              <span>RAG mode</span>
+              <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
             </div>
           </header>
 
@@ -161,6 +177,7 @@ export function ChatShell() {
                   <span className="message-tone">{message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}</span>
                 </div>
                 <p>{message.text}</p>
+
                 {message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
                     {message.citations.map((citation) => (
@@ -174,13 +191,24 @@ export function ChatShell() {
                     ))}
                   </div>
                 ) : null}
+
+                {message.suggestedQuestions && message.suggestedQuestions.length > 0 ? (
+                  <div className="suggestion-list">
+                    <p className="suggestion-title">You might also ask</p>
+                    {message.suggestedQuestions.slice(0, 3).map((q) => (
+                      <button key={q} type="button" className="suggestion-chip" onClick={() => void sendMessage(q)}>
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </article>
             ))}
 
             {isSubmitting ? (
               <div className="loading-state" aria-live="polite">
                 <span className="loading-line" />
-                <span>Retrieving sources and composing a grounded answer…</span>
+                <span>{LOADING_STAGES[loadingStage]}</span>
               </div>
             ) : null}
           </div>
@@ -188,7 +216,7 @@ export function ChatShell() {
           <footer className="composer-shell">
             <div className="composer-intro">
               <span className="rail-label">Prompt</span>
-              <p>Ask naturally. The assistant answers only with supportable evidence.</p>
+              <p>Agent decides tool calls. Unsupported answers return “I don&apos;t know.”</p>
             </div>
 
             <div className="composer">
@@ -198,15 +226,15 @@ export function ChatShell() {
                 onKeyDown={onKeyDown}
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
-                placeholder="Example: What are the first priorities for improving hypertrophy in this program?"
+                placeholder="Example: What are high-protein meal preparation priorities for this week?"
                 rows={5}
               />
 
               <div className="composer-actions">
                 <div className="composer-hints">
                   <span>IME-safe input</span>
-                  <span>Source citations</span>
-                  <span>RAG-backed responses</span>
+                  <span>Agentic tool calls</span>
+                  <span>No-hallucination policy</span>
                 </div>
                 <button type="button" onClick={() => void sendMessage()} disabled={!canSend}>
                   {isSubmitting ? 'Responding…' : 'Send message'}
