@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import type { ChatRequest } from '@/lib/contracts';
-import { answerFromKnowledgeBase } from '@/lib/mock-knowledge';
+import { answerFromRAG } from '@/lib/rag';
 import { appendUsageLog } from '@/lib/usage-log';
 
 const MAX_HISTORY_ITEMS = 10;
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         }))
     : [];
 
-  const response = answerFromKnowledgeBase({
+  const response = await answerFromRAG({
     message,
     history,
   });

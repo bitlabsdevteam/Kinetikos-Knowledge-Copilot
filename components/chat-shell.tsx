@@ -9,16 +9,8 @@ const starterMessages: ChatMessage[] = [
   {
     id: 'welcome',
     role: 'assistant',
-    text: 'こんにちは。Kinetikos Knowledge Copilot へようこそ。必要な情報だけを静かに整理し、根拠が確認できる内容に絞って日本語でご案内します。',
-    citations: [
-      {
-        id: 'demo-citation',
-        title: 'Grounded Answering Policy',
-        sourceType: 'manual',
-        excerpt: '回答は信頼できるソースに基づく内容のみを返し、十分な根拠がなければ曖昧さを明示します。',
-        href: '#',
-      },
-    ],
+    text: "Welcome to Kinetikos Knowledge Copilot. I answer only from available sources. If evidence is missing, I will say: 'I don't know based on the available Kinetikos sources.'",
+    citations: [],
   },
 ];
 
@@ -34,20 +26,14 @@ export function ChatShell() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
-      if (!isHostUserPayload(event.data)) {
-        return;
-      }
-
+      if (!isHostUserPayload(event.data)) return;
       setUserId(event.data.userId);
       setUserDisplayName(event.data.displayName ?? null);
     };
 
     window.addEventListener('message', handleMessage);
     window.parent?.postMessage({ type: HOST_USER_EVENT_TYPE, status: 'ready' }, '*');
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   const canSend = useMemo(
@@ -59,12 +45,7 @@ export function ChatShell() {
     const text = input.trim();
     if (!text || isComposing || isSubmitting) return;
 
-    const nextUserMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text,
-    };
-
+    const nextUserMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', text };
     const nextHistory = [...messages, nextUserMessage];
 
     setMessages(nextHistory);
@@ -75,9 +56,7 @@ export function ChatShell() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
           history: nextHistory.map(({ role, text: messageText }) => ({ role, text: messageText })),
@@ -87,10 +66,7 @@ export function ChatShell() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('chat request failed');
-      }
-
+      if (!response.ok) throw new Error('chat request failed');
       const payload = (await response.json()) as ChatResponse;
 
       setMessages((current) => [
@@ -103,7 +79,7 @@ export function ChatShell() {
         },
       ]);
     } catch {
-      setError('応答の取得に失敗しました。API 接続と設定を確認してください。');
+      setError('Failed to fetch a response. Check API configuration and connectivity.');
       setMessages((current) => current.filter((message) => message.id !== nextUserMessage.id));
       setInput(text);
     } finally {
@@ -132,9 +108,7 @@ export function ChatShell() {
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Knowledge Copilot</h1>
-            <p className="subtitle">
-              Japanese-first grounded RAG experience for premium educational guidance.
-            </p>
+            <p className="subtitle">English interface, grounded answers, and source-linked retrieval.</p>
           </div>
 
           <div className="rail-card">
@@ -144,28 +118,25 @@ export function ChatShell() {
             </div>
             <p>
               {userId
-                ? `${userDisplayName ?? userId} として利用ログを紐づけます。`
-                : '埋め込み元から userId を受け取ると、利用ログと会話履歴を紐づけます。'}
+                ? `Usage logs are linked to ${userDisplayName ?? userId}.`
+                : 'When userId is passed from host, usage logs and conversation history are linked.'}
             </p>
             <p>Session ID: {sessionId.slice(0, 8)}</p>
           </div>
 
           <div className="rail-card">
-            <span className="rail-label">Design intent</span>
+            <span className="rail-label">Grounding policy</span>
             <ul className="principle-list">
-              <li>Grounded answers only</li>
-              <li>Clean citations with source clarity</li>
-              <li>Japanese-native chat behavior</li>
-              <li>Premium, calm, high-trust interface</li>
+              <li>Use retrieved evidence only</li>
+              <li>Show clean source citations</li>
+              <li>No unsupported claims</li>
+              <li>If uncertain: "I don't know"</li>
             </ul>
           </div>
 
           <div className="rail-card rail-card-accent">
             <span className="rail-label">Interaction note</span>
-            <p>
-              Enter sends the message only when IME composition is complete. Shift + Enter creates a
-              new line.
-            </p>
+            <p>Enter sends only when IME composition is complete. Shift + Enter adds a new line.</p>
           </div>
         </aside>
 
@@ -173,11 +144,11 @@ export function ChatShell() {
           <header className="chat-panel-header">
             <div>
               <p className="panel-kicker">Grounded conversation</p>
-              <h2>Ask in Japanese. Receive traceable answers.</h2>
+              <h2>Ask anything in English. Answers stay source-bound.</h2>
             </div>
             <div className="status-cluster">
               <span className="status-dot" />
-              <span>Knowledge-backed mode</span>
+              <span>RAG mode</span>
             </div>
           </header>
 
@@ -187,21 +158,13 @@ export function ChatShell() {
                 <div className="message-meta">
                   <span className="message-role">{message.role === 'assistant' ? 'Copilot' : 'You'}</span>
                   <span className="message-divider" />
-                  <span className="message-tone">
-                    {message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}
-                  </span>
+                  <span className="message-tone">{message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}</span>
                 </div>
                 <p>{message.text}</p>
                 {message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
                     {message.citations.map((citation) => (
-                      <a
-                        key={citation.id}
-                        className="citation-card"
-                        href={citation.href}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
                         <div className="citation-head">
                           <strong>{citation.title}</strong>
                           <span>{citation.sourceType}</span>
@@ -217,7 +180,7 @@ export function ChatShell() {
             {isSubmitting ? (
               <div className="loading-state" aria-live="polite">
                 <span className="loading-line" />
-                <span>根拠を確認しながら回答を整理しています…</span>
+                <span>Retrieving sources and composing a grounded answer…</span>
               </div>
             ) : null}
           </div>
@@ -225,7 +188,7 @@ export function ChatShell() {
           <footer className="composer-shell">
             <div className="composer-intro">
               <span className="rail-label">Prompt</span>
-              <p>Ask naturally. The assistant should synthesize only what it can support with evidence.</p>
+              <p>Ask naturally. The assistant answers only with supportable evidence.</p>
             </div>
 
             <div className="composer">
@@ -235,15 +198,15 @@ export function ChatShell() {
                 onKeyDown={onKeyDown}
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
-                placeholder="例: このプログラムで筋肥大を優先する場合、最初に意識すべきポイントを整理して教えてください。"
+                placeholder="Example: What are the first priorities for improving hypertrophy in this program?"
                 rows={5}
               />
 
               <div className="composer-actions">
                 <div className="composer-hints">
                   <span>IME-safe input</span>
-                  <span>Grounded citations</span>
-                  <span>Follow-up memory</span>
+                  <span>Source citations</span>
+                  <span>RAG-backed responses</span>
                 </div>
                 <button type="button" onClick={() => void sendMessage()} disabled={!canSend}>
                   {isSubmitting ? 'Responding…' : 'Send message'}
