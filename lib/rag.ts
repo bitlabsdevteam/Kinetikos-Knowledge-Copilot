@@ -30,6 +30,35 @@ const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL ?? 'sonar';
 
 const REFUSAL_MESSAGE = "I don't know based on the available Kinetikos sources.";
+const MIN_SIMILARITY = Number(process.env.RAG_MIN_SIMILARITY ?? 0.45);
+
+function prettifySourceName(raw: string): string {
+  return raw
+    .replace(/---[a-f0-9-]{8,}$/i, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\.pdf$/i, '')
+    .trim();
+}
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2);
+}
+
+function rerankRows(query: string, rows: MatchChunkRow[]): MatchChunkRow[] {
+  const q = new Set(tokenize(query));
+  return rows
+    .map((row) => {
+      const overlap = tokenize(row.text_content).reduce((acc, token) => acc + (q.has(token) ? 1 : 0), 0);
+      const semantic = Number(row.similarity ?? 0);
+      const blended = semantic * 0.8 + Math.min(overlap / 12, 1) * 0.2;
+      return { row, blended };
+    })
+    .sort((a, b) => b.blended - a.blended)
+    .map((x) => x.row);
+}
 
 function toCitation(row: MatchChunkRow, index: number): Citation {
   const sourceFileName = String(row.metadata?.source_file_name ?? row.metadata?.source ?? `source-${index + 1}`);
@@ -42,10 +71,10 @@ function toCitation(row: MatchChunkRow, index: number): Citation {
 
   return {
     id: row.chunk_id || `chunk-${index}`,
-    title: sourceFileName,
+    title: prettifySourceName(sourceFileName),
     sourceType,
     href: '#',
-    excerpt: `${row.page_start ? `p.${row.page_start}` : 'n/a'} · ${row.text_content.slice(0, 160)}`,
+    excerpt: `rank ${index + 1} · sim ${Number(row.similarity ?? 0).toFixed(3)} · ${row.page_start ? `p.${row.page_start}` : 'n/a'} · ${row.text_content.slice(0, 130)}`,
   };
 }
 
@@ -156,11 +185,26 @@ async function geminiFallback(prompt: string): Promise<string> {
   return payload.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || REFUSAL_MESSAGE;
 }
 
-function defaultSuggestions(topic: string): string[] {
+async function generateSuggestions(question: string, answer: string): Promise<string[]> {
+  try {
+    const prompt = `Create 3 concise follow-up questions directly related to this user question and answer. Return JSON array only.\nQuestion: ${question}\nAnswer: ${answer}`;
+    const payload = (await openaiChat([{ role: 'user', content: prompt }])) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const raw = payload.choices?.[0]?.message?.content?.trim() ?? '[]';
+    const parsed = JSON.parse(raw) as string[];
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.slice(0, 3);
+    }
+  } catch {
+    // fallback below
+  }
+
+  const core = question.replace(/[?？]/g, '').trim();
   return [
-    `What are the first practical steps for ${topic}?`,
-    `Can you summarize this into a daily checklist?`,
-    'What should I avoid to reduce mistakes?',
+    `What is the most important first step for: ${core}?`,
+    `Can you turn this into a 7-day action plan for: ${core}?`,
+    `What common mistakes should I avoid regarding: ${core}?`,
   ];
 }
 
@@ -244,11 +288,13 @@ export async function answerFromRAG({ message, history = [], enableInternetSearc
         const query = args.query || message;
 
         if (toolName === 'rag_search') {
-          ragRows = await ragSearch(query);
+          const rawRows = await ragSearch(query);
+          ragRows = rerankRows(query, rawRows).filter((r) => Number(r.similarity ?? 0) >= MIN_SIMILARITY);
+
           const toolResult = ragRows.length
             ? ragRows
                 .slice(0, TOP_K)
-                .map((r, idx) => `[${idx + 1}] ${r.text_content}`)
+                .map((r, idx) => `[${idx + 1}] sim=${Number(r.similarity ?? 0).toFixed(3)}\n${r.text_content}`)
                 .join('\n\n')
             : 'NO_MATCH';
 
@@ -274,10 +320,13 @@ export async function answerFromRAG({ message, history = [], enableInternetSearc
     !normalized.startsWith("i don't know") &&
     !normalized.startsWith('i do not know');
 
+  const safeAnswer = grounded ? finalAnswer : REFUSAL_MESSAGE;
+  const suggestions = grounded ? await generateSuggestions(message, safeAnswer) : [];
+
   return {
     grounded,
-    answer: grounded ? finalAnswer : REFUSAL_MESSAGE,
+    answer: safeAnswer,
     citations: grounded ? ragRows.slice(0, 3).map(toCitation) : [],
-    suggestedQuestions: grounded ? defaultSuggestions(message.toLowerCase()) : [],
+    suggestedQuestions: suggestions,
   };
 }
