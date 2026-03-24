@@ -161,8 +161,6 @@ export function ChatShell() {
               <article key={message.id} className={`message-card message-${message.role}`}>
                 <div className="message-meta">
                   <span className="message-role">{message.role === 'assistant' ? 'AYA' : 'User'}</span>
-                  <span className="message-divider" />
-                  <span className="message-tone">{message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}</span>
                 </div>
                 <p>{message.text}</p>
 
