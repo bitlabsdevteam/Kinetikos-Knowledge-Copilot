@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     timestamp: new Date().toISOString(),
     sessionId,
     userId,
+    userDisplayName: body.userDisplayName?.trim() || null,
     message,
+    answer: response.answer,
     grounded: response.grounded,
     citationIds: response.citations.map((citation) => citation.id),
   });

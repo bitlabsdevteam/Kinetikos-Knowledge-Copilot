@@ -121,21 +121,9 @@ export function ChatShell() {
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Clinical Agentic RAG</h1>
-            <p className="subtitle">Elegant, evidence-first assistant for top-tier healthcare workflows.</p>
+
           </div>
 
-          <div className="rail-card">
-            <span className="rail-label">Session</span>
-            <div className={`session-pill ${userId ? 'session-pill-live' : 'session-pill-pending'}`}>
-              {userId ? 'User linked' : 'Awaiting host user'}
-            </div>
-            <p>
-              {userId
-                ? `Usage logs are linked to ${userDisplayName ?? userId}.`
-                : 'When userId is passed from host, usage logs and conversation history are linked.'}
-            </p>
-            <p>Session ID: {sessionId.slice(0, 8)}</p>
-          </div>
 
           <div className="rail-card">
             <span className="rail-label">Agent controls</span>
