@@ -35,21 +35,30 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
     metadata: { timestamp: entry.timestamp },
   };
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/customer_conversation_history`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify(payload),
-  });
+  const candidates = [
+    process.env.SUPABASE_CONVERSATION_TABLE,
+    'customer_conversation_history',
+    'custome_conversation_history',
+  ].filter(Boolean) as string[];
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`supabase conversation history insert failed: ${response.status} ${errorText}`);
+  let lastError = '';
+  for (const table of candidates) {
+    const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) return;
+    lastError = await response.text();
   }
+
+  throw new Error(`supabase conversation history insert failed: ${lastError}`);
 }
 
 export async function appendUsageLog(entry: UsageLogEntry) {
