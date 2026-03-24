@@ -295,3 +295,12 @@ This project should be fully optimized from a context engineering perspective.
 - **Embeddings:** OpenAI `text-embedding-3-large`
 - **RAG backbone:** Dify
 - **Context engineering focus:** aggressive context optimization, ranking, compact packaging, grounded synthesis
+
+## Database tables and schemas
+- customer_conversation_history
+- document_chunks
+- documents
+- ingestion_runs
+- retrieval_logs
+- user_profile
+- settings
