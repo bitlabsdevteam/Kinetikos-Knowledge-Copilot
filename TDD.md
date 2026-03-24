@@ -3,6 +3,13 @@
 ## 1. Technical Direction
 This MVP should be built for stability, maintainability, and commercial readiness.
 
+### Architectural direction (locked)
+Use API-first headless architecture:
+- Dify is used as orchestration/retrieval engine.
+- Next.js app is the only user-facing chat/voice interface.
+- Backend owns access control, citation formatting, usage policy, and tenant-aware routing.
+- Avoid dependence on Dify widget UX for mission-critical behavior.
+
 ## 2. Frontend Stack
 ### Required
 - **TypeScript**

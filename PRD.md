@@ -4,7 +4,7 @@
 **Kinetikos Knowledge Copilot**
 
 ## 2. Product Vision
-Build a Japanese-first AI knowledge copilot that can synthesize answers across a large Kinetikos content base and deliver a premium, branded, trustworthy chat experience for users.
+Build a Japanese-first AI knowledge copilot that can synthesize answers across a large Kinetikos content base and deliver a premium, branded, trustworthy chat + voice experience for users.
 
 ## 3. Product Objective
 The product should:
@@ -27,6 +27,7 @@ Launch a commercially credible AI product that:
 Goal:
 - prove the AI can retrieve and synthesize across a large knowledge base
 - prove the assistant can answer in the founder’s intended style without hallucinating unsupported claims
+- prove the assistant can return voice responses in founder/wife-aligned voice style
 
 Focus areas:
 - knowledge ingestion
@@ -45,6 +46,7 @@ Focus areas:
 - branded citations
 - conversational memory
 - user-linked usage logging
+- voice input/output layer on top of existing agentic RAG
 - future portability
 
 ## 6. Primary Users
@@ -113,6 +115,21 @@ The system must link chat usage to a user identifier from day one so query histo
 ### R11. Future portability
 The system should be built in a way that can be moved to owned infrastructure later if needed.
 
+### R12. Voice agent enhancement (additive, no regression)
+Voice must be added as an input/output layer without removing current text agentic RAG features.
+
+### R13. Voice input
+The UI must support microphone capture and speech-to-text transcription. Transcribed text must be passed into the same existing chat request path.
+
+### R14. Voice output
+Assistant answer text must be converted to speech by TTS using a configurable voice profile aligned with founder/wife tone.
+
+### R15. Voice grounding parity
+Voice output must never bypass grounding. If the text response abstains ("I don't know"), voice must read the same abstention response exactly.
+
+### R16. Voice usage logging
+Voice conversations must be logged to Supabase with user_id/session_id, keeping the same observability standards as text chat.
+
 ## 11. User Journey
 1. user opens the Kinetikos page
 2. embedded chat loads inside the branded interface
@@ -127,23 +144,26 @@ The system should be built in a way that can be moved to owned infrastructure la
 
 ## 12. MVP Scope
 ### In scope
+- headless architecture: Dify as orchestration engine, custom Next.js as product UI
 - Dify-based knowledge ingestion and retrieval
 - hybrid search
 - multi-source synthesis
 - strict grounded answering
 - founder-style response guidance
-- Next.js embedded chat app
+- Next.js embedded chat app (no dependency on Dify widget UX)
 - IME-safe Japanese input handling
-- clickable branded citations
+- clickable branded citations using canonical source metadata only
 - conversational memory
 - user-linked usage logging
+- Craft CMS user identity handoff and entitlement-aware usage control
+- tenant-tagged knowledge and retrieval filtering foundations
 
 ### Out of scope for MVP
-- broad autonomous agent behavior
+- broad autonomous agent behavior beyond grounded RAG scope
 - generic non-grounded chat features
 - replacing Craft CMS
 - large multi-product admin platform
-- advanced multi-tenant productization beyond readiness groundwork
+- full enterprise multi-tenant admin console
 
 ## 13. Success Criteria
 ### Product success
@@ -172,12 +192,28 @@ The system should be built in a way that can be moved to owned infrastructure la
 - test IME behavior explicitly
 - keep the MVP narrow and premium rather than broad and generic
 
-## 16. Workload Estimate from Source Document
+## 16. Root-Cause Analysis and Architectural Decision
+
+### Root-cause summary
+- Widget-based black-box UI creates Japanese IME UX regressions.
+- Citation rendering in managed UI creates trust failures (title drift, link indirection, awkward blocks).
+- Access-control logic is disconnected from Craft CMS due to iframe/session isolation.
+- Multi-tenant roadmap is blocked without strict tenant metadata isolation and server-side routing controls.
+
+### Architectural decision
+Adopt an API-first headless architecture:
+- Keep Dify as orchestration/retrieval brain.
+- Own 100% of frontend UX in Next.js.
+- Own citation rendering rules in app layer.
+- Own user tier enforcement and usage policy in backend.
+- Enforce tenant_id-based logical isolation in retrieval and logging paths.
+
+## 17. Workload Estimate from Source Document
 - **Phase 1 (POC):** roughly 25–45 hours
 - **Phase 2 (MVP):** roughly 50–70 hours
 - **Total:** roughly 75–115 hours
 
-## 17. Immediate Next Deliverables
+## 18. Immediate Next Deliverables
 - `TDD.md`
 - `SYSTEM_ARCHITECTURE.md`
 - `MVP_FEATURE_PRIORITY.md`
