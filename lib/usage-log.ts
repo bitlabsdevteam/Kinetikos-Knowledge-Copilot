@@ -21,7 +21,10 @@ const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
-  if (!supabaseUrl || !serviceRoleKey) return;
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn('[usage-log] Missing Supabase URL or key for conversation history insert.');
+    return;
+  }
 
   const payload = {
     tenant_id: process.env.RAG_DEFAULT_TENANT ?? 'global_kinetikos',
@@ -58,7 +61,7 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
     lastError = await response.text();
   }
 
-  throw new Error(`supabase conversation history insert failed: ${lastError}`);
+  throw new Error(`supabase conversation history insert failed for [${candidates.join(', ')}]: ${lastError}`);
 }
 
 export async function appendUsageLog(entry: UsageLogEntry) {

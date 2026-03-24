@@ -160,7 +160,7 @@ export function ChatShell() {
             {messages.map((message) => (
               <article key={message.id} className={`message-card message-${message.role}`}>
                 <div className="message-meta">
-                  <span className="message-role">{message.role === 'assistant' ? 'Copilot' : 'You'}</span>
+                  <span className="message-role">{message.role === 'assistant' ? 'AYA' : 'User'}</span>
                   <span className="message-divider" />
                   <span className="message-tone">{message.role === 'assistant' ? 'Grounded synthesis' : 'Prompt'}</span>
                 </div>
