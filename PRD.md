@@ -183,7 +183,16 @@ Voice conversations must be logged to Supabase with user_id/session_id, keeping 
 - poor synthesis across multiple sources
 - broken Japanese IME UX
 - low trust if citations are unclear
+- disconnected access control between CMS and RAG layer
+- cross-tenant data leakage risk in future B2B rollout
 - over-scoping the MVP into a broad platform too early
+
+## 15. User-facing issues that must be resolved
+1. Japanese IME accidental Enter-submit during composition.
+2. Clunky citation experience (title drift, multi-click links, broken OG placeholder).
+3. User-facing "Citation Blocked" messaging.
+4. Weak CMS-to-RAG member access and usage enforcement.
+5. No robust multi-tenant isolation controls for enterprise roadmap.
 
 ## 15. Risk Controls
 - use hybrid retrieval
@@ -213,7 +222,7 @@ Adopt an API-first headless architecture:
 - **Phase 2 (MVP):** roughly 50–70 hours
 - **Total:** roughly 75–115 hours
 
-## 18. Immediate Next Deliverables
+## 19. Immediate Next Deliverables
 - `TDD.md`
 - `SYSTEM_ARCHITECTURE.md`
 - `MVP_FEATURE_PRIORITY.md`

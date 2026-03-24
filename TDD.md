@@ -311,3 +311,74 @@ This project should be fully optimized from a context engineering perspective.
 - retrieval_logs
 - user_profile
 - settings
+
+## Headless Architecture Implementation (Kaito mission lock)
+
+### A. Control boundaries
+- **Frontend (Next.js):** owns UX (IME-safe input, citations, voice controls, premium branding).
+- **BFF API layer (Next.js route handlers):** single control plane for auth, access policy, tenant filtering, Dify calls, response normalization, logging.
+- **Dify:** orchestration/retrieval/memory engine only.
+- **Supabase:** usage, conversation history, retrieval telemetry, tenant-aware records.
+
+### B. Dify integration requirements
+- Base URL: `DIFY_API_BASE_URL` (expected `https://api.dify.ai/v1`)
+- Auth: `Authorization: Bearer ${DIFY_API_KEY}`
+- Endpoint for conversational RAG: `POST /chat-messages`
+- `conversation_id` must be persisted and reused for continuity.
+- `user` must be a stable backend-controlled user identifier.
+
+#### Reference API call (for Kaito)
+```bash
+curl -X POST 'https://api.dify.ai/v1/chat-messages' \
+--header 'Authorization: Bearer {api_key}' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "inputs": {},
+  "query": "What are the specs of the iPhone 13 Pro Max?",
+  "response_mode": "streaming",
+  "conversation_id": "",
+  "user": "abc-123",
+  "files": [
+    {
+      "type": "image",
+      "transfer_method": "remote_url",
+      "url": "https://cloud.dify.ai/logo/logo-site.png"
+    }
+  ]
+}'
+```
+
+### C. IME hard requirement
+- Enter key **must not submit** while composing Japanese text.
+- Must use `onCompositionStart` / `onCompositionEnd` and `isComposing` checks.
+
+### D. Citation requirements
+- Citation titles/URLs must come from trusted source metadata, not generated links.
+- No hallucinated links in assistant body.
+- Remove broken OG placeholders from citation UI.
+- Avoid multi-click interstitial citation flow.
+
+### E. Access control and Craft CMS integration
+- Host page sends user context by `postMessage`.
+- Backend validates user identity and membership tier before calling Dify.
+- Usage limits and source access rules are enforced in backend, never client-side.
+
+### F. Multi-tenant readiness requirements
+- Every critical row/query includes `tenant_id`.
+- Retrieval must be tenant-filtered (no cross-tenant recall).
+- Logs and conversation history must include tenant/user/session IDs.
+- Tenant context must come from authenticated backend identity, not raw client input.
+
+### G. Voice-agent enhancement (additive)
+- Existing agentic text RAG features must remain intact.
+- Add STT endpoint (`/api/voice/transcribe`) -> pass transcript into existing `/api/chat` flow.
+- Add TTS endpoint (`/api/voice/speak`) using grounded answer text only.
+- Voice must obey same abstention policy as text.
+
+### H. Delivery gates
+1. IME bug fixed and tested on Japanese input.
+2. Citation UX clean and deterministic.
+3. Backend-driven user/member access control live.
+4. Tenant-aware data model and request routing in place.
+5. Dify API integration through BFF complete.
+6. No regression in existing agentic RAG features.
