@@ -66,10 +66,16 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
 
 export async function appendUsageLog(entry: UsageLogEntry) {
   try {
-    await mkdir(dataDirectory, { recursive: true });
-    await appendFile(usageLogPath, `${JSON.stringify(entry)}\n`, 'utf8');
     await appendSupabaseConversationHistory(entry);
   } catch (error) {
-    console.warn('[usage-log] Skipping log write.', error);
+    console.warn('[usage-log] Supabase conversation log failed.', error);
+  }
+
+  try {
+    await mkdir(dataDirectory, { recursive: true });
+    await appendFile(usageLogPath, `${JSON.stringify(entry)}\n`, 'utf8');
+  } catch (error) {
+    // Local filesystem can be read-only in serverless. Ignore.
+    console.warn('[usage-log] Local file log failed.', error);
   }
 }
