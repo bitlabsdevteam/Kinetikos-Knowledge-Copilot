@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import type { ChatRequest } from '@/lib/contracts';
 import { answerFromRAG } from '@/lib/rag';
+import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
 import { appendUsageLog } from '@/lib/usage-log';
 
 const MAX_HISTORY_ITEMS = 10;
@@ -32,11 +33,29 @@ export async function POST(request: Request) {
         }))
     : [];
 
-  const response = await answerFromRAG({
-    message,
-    history,
-    enableInternetSearch: Boolean(body.enableInternetSearch),
-  });
+  const difyUserId = userId ?? `anon-${sessionId}`;
+  const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
+
+  const { response, conversationId, backend } = isDifyEnabled()
+    ? await chatWithDify({
+        message,
+        userId: difyUserId,
+        conversationId: difyConversationId,
+        inputs: {
+          enable_internet_search: Boolean(body.enableInternetSearch),
+          session_id: sessionId,
+          user_display_name: body.userDisplayName?.trim() || null,
+        },
+      }).then((r) => ({ ...r, backend: 'dify' as const }))
+    : {
+        response: await answerFromRAG({
+          message,
+          history,
+          enableInternetSearch: Boolean(body.enableInternetSearch),
+        }),
+        conversationId: undefined,
+        backend: 'local-rag' as const,
+      };
 
   await appendUsageLog({
     timestamp: new Date().toISOString(),
@@ -49,9 +68,13 @@ export async function POST(request: Request) {
     citationIds: response.citations.map((citation) => citation.id),
   });
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     ...response,
     sessionId,
     sessionUserId: userId,
+    difyConversationId: conversationId,
+    backend,
   });
+  res.headers.set('x-rag-backend', backend);
+  return res;
 }
