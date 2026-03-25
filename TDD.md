@@ -76,6 +76,13 @@ Use **Google Auth** as the primary user login method.
 - good fit with Next.js
 - clean user/session mapping for premium product usage
 
+### Required implementation details (Kaito)
+1. Use Supabase Auth session as backend-trusted identity source.
+2. Support Google OAuth in production login flow.
+3. Map authenticated user to `app_users` and `tenant_memberships` before serving chat.
+4. Resolve active tenant context server-side for every BFF request.
+5. Enforce role/member_level checks before Dify API calls.
+
 ## 6. LLM / Embedding Direction
 ### Embeddings requirement
 Choose the best embedding model from GPT / OpenAI.

@@ -130,6 +130,15 @@ Voice output must never bypass grounding. If the text response abstains ("I don'
 ### R16. Voice usage logging
 Voice conversations must be logged to Supabase with user_id/session_id, keeping the same observability standards as text chat.
 
+### R17. Authentication and onboarding (Supabase Auth)
+The product must support secure user onboarding/login through Supabase Auth.
+
+### R18. Google Auth support
+Google OAuth login must be available as a primary sign-in method.
+
+### R19. Tenant-aware identity mapping
+After login, users must be mapped to tenant memberships and role/tier permissions before any RAG request is executed.
+
 ## 11. User Journey
 1. user opens the Kinetikos page
 2. embedded chat loads inside the branded interface
@@ -155,7 +164,10 @@ Voice conversations must be logged to Supabase with user_id/session_id, keeping 
 - clickable branded citations using canonical source metadata only
 - conversational memory
 - user-linked usage logging
+- Supabase Auth onboarding/login flow
+- Google OAuth login support
 - Craft CMS user identity handoff and entitlement-aware usage control
+- tenant membership-aware backend authorization
 - tenant-tagged knowledge and retrieval filtering foundations
 
 ### Out of scope for MVP
