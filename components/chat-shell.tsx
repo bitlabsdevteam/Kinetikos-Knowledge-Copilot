@@ -116,6 +116,17 @@ export function ChatShell() {
       <div className="ambient-orb ambient-orb-left" aria-hidden="true" />
       <div className="ambient-orb ambient-orb-right" aria-hidden="true" />
 
+      <header className="top-banner">
+        <div>
+          <p className="eyebrow">Kinetikos</p>
+          <strong>Knowledge Copilot</strong>
+        </div>
+        <nav className="top-banner-nav" aria-label="Account navigation">
+          <a href="/login">Login</a>
+          <a href="/onboarding">Register</a>
+        </nav>
+      </header>
+
       <section className="experience-frame">
         <aside className="info-rail">
           <div className="brand-block">
