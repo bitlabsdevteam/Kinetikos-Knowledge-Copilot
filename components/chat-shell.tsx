@@ -78,7 +78,12 @@ export function ChatShell() {
         }),
       });
 
-      if (!response.ok) throw new Error('chat request failed');
+      if (!response.ok) {
+        const errPayload = (await response.json().catch(() => ({ error: 'chat request failed' }))) as {
+          error?: string;
+        };
+        throw new Error(errPayload.error || 'chat request failed');
+      }
       const payload = (await response.json()) as ChatResponse;
 
       setMessages((current) => [

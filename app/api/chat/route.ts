@@ -27,16 +27,32 @@ export async function POST(request: Request) {
     );
   }
 
-  const { response, conversationId, backend } = await chatWithDify({
-    message,
-    userId: difyUserId,
-    conversationId: difyConversationId,
-    inputs: {
-      enable_internet_search: Boolean(body.enableInternetSearch),
-      session_id: sessionId,
-      user_display_name: body.userDisplayName?.trim() || null,
-    },
-  }).then((r) => ({ ...r, backend: 'dify' as const }));
+  let response: Awaited<ReturnType<typeof chatWithDify>>['response'];
+  let conversationId: string | undefined;
+  const backend = 'dify' as const;
+
+  try {
+    const result = await chatWithDify({
+      message,
+      userId: difyUserId,
+      conversationId: difyConversationId,
+      inputs: {
+        enable_internet_search: Boolean(body.enableInternetSearch),
+        session_id: sessionId,
+        user_display_name: body.userDisplayName?.trim() || null,
+      },
+    });
+    response = result.response;
+    conversationId = result.conversationId;
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Dify request failed',
+        backend,
+      },
+      { status: 502 },
+    );
+  }
 
   await appendUsageLog({
     timestamp: new Date().toISOString(),
