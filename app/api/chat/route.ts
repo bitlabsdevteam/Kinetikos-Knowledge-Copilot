@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 
 import type { ChatRequest } from '@/lib/contracts';
-import { answerFromRAG } from '@/lib/rag';
 import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
 import { appendUsageLog } from '@/lib/usage-log';
-
-const MAX_HISTORY_ITEMS = 10;
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<ChatRequest>;
@@ -17,45 +14,29 @@ export async function POST(request: Request) {
   const message = body.message.trim();
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
   const userId = body.userId?.trim() || null;
-  const history = Array.isArray(body.history)
-    ? body.history
-        .filter(
-          (entry): entry is NonNullable<ChatRequest['history']>[number] =>
-            !!entry &&
-            (entry.role === 'user' || entry.role === 'assistant') &&
-            typeof entry.text === 'string' &&
-            entry.text.trim().length > 0,
-        )
-        .slice(-MAX_HISTORY_ITEMS)
-        .map((entry) => ({
-          role: entry.role,
-          text: entry.text.trim(),
-        }))
-    : [];
-
   const difyUserId = userId ?? `anon-${sessionId}`;
   const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
 
-  const { response, conversationId, backend } = isDifyEnabled()
-    ? await chatWithDify({
-        message,
-        userId: difyUserId,
-        conversationId: difyConversationId,
-        inputs: {
-          enable_internet_search: Boolean(body.enableInternetSearch),
-          session_id: sessionId,
-          user_display_name: body.userDisplayName?.trim() || null,
-        },
-      }).then((r) => ({ ...r, backend: 'dify' as const }))
-    : {
-        response: await answerFromRAG({
-          message,
-          history,
-          enableInternetSearch: Boolean(body.enableInternetSearch),
-        }),
-        conversationId: undefined,
-        backend: 'local-rag' as const,
-      };
+  if (!isDifyEnabled()) {
+    return NextResponse.json(
+      {
+        error: 'Dify is not configured in this deployment. Please set DIFY_API_KEY and DIFY_BASE_URL in Production env.',
+        backend: 'dify-missing-config',
+      },
+      { status: 503 },
+    );
+  }
+
+  const { response, conversationId, backend } = await chatWithDify({
+    message,
+    userId: difyUserId,
+    conversationId: difyConversationId,
+    inputs: {
+      enable_internet_search: Boolean(body.enableInternetSearch),
+      session_id: sessionId,
+      user_display_name: body.userDisplayName?.trim() || null,
+    },
+  }).then((r) => ({ ...r, backend: 'dify' as const }));
 
   await appendUsageLog({
     timestamp: new Date().toISOString(),
