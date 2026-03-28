@@ -16,6 +16,15 @@ const starterMessages: ChatMessage[] = [
 
 const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
 
+function fallbackSuggestions(fromPrompt: string): string[] {
+  const topic = fromPrompt.trim().slice(0, 80);
+  return [
+    `Can you summarize this in 3 key points?${topic ? ` (${topic})` : ''}`,
+    'What are the risks, limitations, or contraindications?',
+    'What should I ask next to validate this answer?'
+  ];
+}
+
 function renderMessageText(text: string): ReactNode {
   const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
   if (lines.length === 0) return <p>{text}</p>;
@@ -121,6 +130,11 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
         setDifyConversationId(payload.difyConversationId);
       }
 
+      const safeSuggestions =
+        payload.suggestedQuestions && payload.suggestedQuestions.length > 0
+          ? payload.suggestedQuestions
+          : fallbackSuggestions(text);
+
       setMessages((current) => [
         ...current,
         {
@@ -128,7 +142,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
           role: 'assistant',
           text: payload.answer,
           citations: payload.citations,
-          suggestedQuestions: payload.suggestedQuestions,
+          suggestedQuestions: safeSuggestions,
         },
       ]);
     } catch (err) {
