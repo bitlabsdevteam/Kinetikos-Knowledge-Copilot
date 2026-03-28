@@ -30,7 +30,7 @@
   - Acceptance: Responses render structured text without clunky placeholders; citations remain deterministic.
   - Files: `components/chat-shell.tsx`, `lib/dify-client.ts`
 
-- [ ] Task 8: Add API/backend debug visibility for env and backend mode (P1)
+- [x] Task 8: Add API/backend debug visibility for env and backend mode (P1)
   - Acceptance: Response clearly shows backend mode and actionable error when env missing.
   - Files: `app/api/chat/route.ts`, `components/chat-shell.tsx`
 

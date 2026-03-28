@@ -49,6 +49,7 @@ export function ChatShell() {
   const [enableInternetSearch, setEnableInternetSearch] = useState(false);
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
+  const [backendMode, setBackendMode] = useState<string>('dify');
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -104,10 +105,13 @@ export function ChatShell() {
       if (!response.ok) {
         const errPayload = (await response.json().catch(() => ({ error: 'chat request failed' }))) as {
           error?: string;
+          backend?: string;
         };
+        if (errPayload.backend) setBackendMode(errPayload.backend);
         throw new Error(errPayload.error || 'chat request failed');
       }
       const payload = (await response.json()) as ChatResponse;
+      if (payload.backend) setBackendMode(payload.backend);
       if (payload.difyConversationId) {
         setDifyConversationId(payload.difyConversationId);
       }
@@ -122,8 +126,8 @@ export function ChatShell() {
           suggestedQuestions: payload.suggestedQuestions,
         },
       ]);
-    } catch {
-      setError('Failed to fetch a response. Check API configuration and connectivity.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch a response. Check API configuration and connectivity.');
       setMessages((current) => current.filter((message) => message.id !== nextUserMessage.id));
       if (!preset) setInput(text);
     } finally {
@@ -214,6 +218,7 @@ export function ChatShell() {
             <div className="status-cluster">
               <span className="status-dot" />
               <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
+              <span>backend: {backendMode}</span>
               <button
                 type="button"
                 className="suggestion-chip"
