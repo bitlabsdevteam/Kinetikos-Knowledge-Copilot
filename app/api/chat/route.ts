@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
 
+import { evaluateAccessPolicy } from '@/lib/access-policy';
 import type { ChatRequest } from '@/lib/contracts';
 import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import { appendUsageLog } from '@/lib/usage-log';
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as Partial<ChatRequest>;
+  const body = (await request.json()) as Partial<ChatRequest> & {
+    tenantId?: string;
+    difyConversationId?: string;
+    accessContext?: {
+      memberLevel?: string;
+      permissions?: string[];
+      usageCountToday?: number;
+      usageLimitOverride?: number;
+    };
+  };
 
   if (!body.message || !body.message.trim()) {
     return NextResponse.json({ error: 'message is required' }, { status: 400 });
@@ -17,9 +27,19 @@ export async function POST(request: Request) {
   const userId = body.userId?.trim() || null;
   const effectiveUserId = userId ?? `anon-${sessionId}`;
 
-  const difyUserId = effectiveUserId;
-  const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
-  const requestedTenantId = (body as { tenantId?: string }).tenantId?.trim();
+  const policy = evaluateAccessPolicy({
+    memberLevel: body.accessContext?.memberLevel,
+    permissions: body.accessContext?.permissions,
+    usageCountToday: body.accessContext?.usageCountToday,
+    usageLimitOverride: body.accessContext?.usageLimitOverride,
+  });
+
+  if (!policy.allowed) {
+    return NextResponse.json({ error: policy.reason, code: 'policy_denied' }, { status: 403 });
+  }
+
+  const difyConversationId = body.difyConversationId?.trim();
+  const requestedTenantId = body.tenantId?.trim();
   const tenant = await resolveTenantContext({
     externalUserId: effectiveUserId,
     userDisplayName: body.userDisplayName?.trim() || null,
@@ -50,7 +70,7 @@ export async function POST(request: Request) {
   try {
     const result = await chatWithDify({
       message,
-      userId: difyUserId,
+      userId: effectiveUserId,
       conversationId: difyConversationId,
       inputs: {
         enable_internet_search: Boolean(body.enableInternetSearch),
@@ -59,6 +79,7 @@ export async function POST(request: Request) {
         tenant_id: tenant.tenantId,
       },
     });
+
     response = result.response;
     conversationId = result.conversationId;
   } catch (error) {
@@ -92,7 +113,12 @@ export async function POST(request: Request) {
     difyConversationId: conversationId,
     backend,
     tenantId: tenant.tenantId,
+    access: {
+      allowed: true,
+      effectiveLimit: policy.effectiveLimit,
+    },
   });
+
   res.headers.set('x-rag-backend', backend);
   return res;
 }

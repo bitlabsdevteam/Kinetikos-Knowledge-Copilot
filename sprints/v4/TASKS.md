@@ -26,7 +26,7 @@
   - Acceptance: Only trusted retriever URLs are rendered; fabricated links are filtered/omitted.
   - Files: `lib/dify-client.ts`, `app/api/chat/route.ts`
 
-- [ ] Task 7: Add backend policy evaluator for member-level permissions/usage limits (P0)
+- [x] Task 7: Add backend policy evaluator for member-level permissions/usage limits (P0)
   - Acceptance: Chat API can allow/deny/limit by member_level/permissions input; denial returns explicit error.
   - Files: `lib/access-policy.ts`, `app/api/chat/route.ts`
 
