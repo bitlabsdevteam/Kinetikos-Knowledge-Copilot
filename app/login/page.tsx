@@ -1,6 +1,52 @@
+'use client';
+
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
+
+import { createBrowserSupabaseClient } from '@/lib/supabase-client';
 
 export default function LoginPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+
+  const handleGoogle = async () => {
+    setIsLoading(true);
+    setError(null);
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    });
+
+    if (authError) {
+      setError(authError.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleMagicLink = async () => {
+    const email = window.prompt('Enter your email for magic link login');
+    if (!email) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+
+    if (otpError) {
+      setError(otpError.message);
+    } else {
+      setError('Magic link sent. Check your inbox.');
+    }
+
+    setIsLoading(false);
+  };
+
   return (
     <main className="auth-home">
       <section className="auth-card">
@@ -9,15 +55,15 @@ export default function LoginPage() {
         <p>Use Supabase Auth for secure access. Google OAuth is the primary sign-in method.</p>
 
         <div className="auth-actions">
-          <button className="auth-btn auth-btn-primary" type="button">
-            Continue with Google
+          <button className="auth-btn auth-btn-primary" type="button" onClick={handleGoogle} disabled={isLoading}>
+            {isLoading ? 'Redirecting…' : 'Continue with Google'}
           </button>
-          <button className="auth-btn auth-btn-ghost" type="button">
+          <button className="auth-btn auth-btn-ghost" type="button" onClick={handleMagicLink} disabled={isLoading}>
             Send Magic Link
           </button>
         </div>
 
-        <p className="auth-note">Implementation wiring to Supabase Auth callbacks is next in backend/auth phase.</p>
+        {error ? <p className="auth-note">{error}</p> : null}
         <Link href="/onboarding" className="auth-link">
           Next: Onboarding
         </Link>
