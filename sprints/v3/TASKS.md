@@ -22,7 +22,7 @@
   - Acceptance: New chat-related writes include tenant_id and reject missing tenant context.
   - Files: `lib/usage-log.ts`, `app/api/chat/route.ts`, related data helpers
 
-- [ ] Task 6: Guard tenant-scoped reads/writes to prevent cross-tenant leakage (P0)
+- [x] Task 6: Guard tenant-scoped reads/writes to prevent cross-tenant leakage (P0)
   - Acceptance: API path does not allow reading/writing another tenant’s data by crafted client input.
   - Files: `app/api/chat/route.ts`, tenant utility modules
 

@@ -21,6 +21,7 @@ export async function POST(request: Request) {
 
   const difyUserId = userId;
   const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
+  const requestedTenantId = (body as { tenantId?: string }).tenantId?.trim();
   const tenant = await resolveTenantContext({
     externalUserId: userId,
     userDisplayName: body.userDisplayName?.trim() || null,
@@ -28,6 +29,10 @@ export async function POST(request: Request) {
 
   if (!tenant.tenantId) {
     return NextResponse.json({ error: 'tenant context resolution failed' }, { status: 503 });
+  }
+
+  if (requestedTenantId && requestedTenantId !== tenant.tenantId) {
+    return NextResponse.json({ error: 'forbidden tenant override attempt' }, { status: 403 });
   }
 
   if (!isDifyEnabled()) {
