@@ -22,7 +22,7 @@
   - Acceptance: Citation card click goes directly to source URL; no dead OG-image placeholder regions.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
-- [ ] Task 6: Block hallucinated citation links in answer body and citation payload (P1)
+- [x] Task 6: Block hallucinated citation links in answer body and citation payload (P1)
   - Acceptance: Only trusted retriever URLs are rendered; fabricated links are filtered/omitted.
   - Files: `lib/dify-client.ts`, `app/api/chat/route.ts`
 

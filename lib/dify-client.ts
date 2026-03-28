@@ -43,6 +43,17 @@ function mapCitations(resources: DifyRetrieverResource[] = []): ChatResponse['ci
   });
 }
 
+function sanitizeAnswerLinks(answer: string, citations: ChatResponse['citations']): string {
+  const trusted = new Set(citations.map((c) => c.href).filter((href) => href && href !== '#'));
+  if (trusted.size === 0) {
+    return answer.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1');
+  }
+
+  return answer.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, (_match, label: string, url: string) => {
+    return trusted.has(url) ? `[${label}](${url})` : label;
+  });
+}
+
 export async function chatWithDify(params: {
   message: string;
   userId: string;
@@ -72,8 +83,9 @@ export async function chatWithDify(params: {
   }
 
   const payload = (await res.json()) as DifyBlockingResponse;
-  const answer = payload.answer?.trim() || "I don't know based on the available Kinetikos sources.";
+  const rawAnswer = payload.answer?.trim() || "I don't know based on the available Kinetikos sources.";
   const citations = mapCitations(payload.metadata?.retriever_resources ?? []);
+  const answer = sanitizeAnswerLinks(rawAnswer, citations);
 
   return {
     response: {
