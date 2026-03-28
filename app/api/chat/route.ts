@@ -15,15 +15,13 @@ export async function POST(request: Request) {
   const message = body.message.trim();
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
   const userId = body.userId?.trim() || null;
-  if (!userId) {
-    return NextResponse.json({ error: 'authentication required for tenant-scoped chat' }, { status: 401 });
-  }
+  const effectiveUserId = userId ?? `anon-${sessionId}`;
 
-  const difyUserId = userId;
+  const difyUserId = effectiveUserId;
   const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
   const requestedTenantId = (body as { tenantId?: string }).tenantId?.trim();
   const tenant = await resolveTenantContext({
-    externalUserId: userId,
+    externalUserId: effectiveUserId,
     userDisplayName: body.userDisplayName?.trim() || null,
   });
 
