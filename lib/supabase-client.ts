@@ -11,7 +11,13 @@ function assertConfig() {
 
 export function createBrowserSupabaseClient() {
   assertConfig();
-  return createClient(supabaseUrl!, supabaseAnonKey!);
+  return createClient(supabaseUrl!, supabaseAnonKey!, {
+    auth: {
+      flowType: 'pkce',
+      detectSessionInUrl: true,
+      persistSession: true,
+    },
+  });
 }
 
 export function createServerSupabaseClient() {

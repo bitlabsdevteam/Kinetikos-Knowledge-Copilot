@@ -32,11 +32,14 @@ export default function LoginPage() {
     setError(authError);
   }, []);
 
+  const resolveCallbackUrl = () =>
+    process.env.NEXT_PUBLIC_APP_AUTH_CALLBACK_URL?.trim() || `${window.location.origin}/auth/callback`;
+
   const handleGoogle = async () => {
     setIsLoading(true);
     setError(null);
 
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const redirectTo = resolveCallbackUrl();
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
@@ -55,9 +58,10 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    const emailRedirectTo = resolveCallbackUrl();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo },
     });
 
     if (otpError) {

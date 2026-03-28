@@ -16,6 +16,15 @@ const starterMessages: ChatMessage[] = [
 
 const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
 
+function fallbackSuggestions(fromPrompt: string): string[] {
+  const topic = fromPrompt.trim().slice(0, 80);
+  return [
+    `Can you summarize this in 3 key points?${topic ? ` (${topic})` : ''}`,
+    'What are the risks, limitations, or contraindications?',
+    'What should I ask next to validate this answer?',
+  ];
+}
+
 function renderMessageText(text: string): ReactNode {
   const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
   if (lines.length === 0) return <p>{text}</p>;
@@ -37,7 +46,12 @@ function renderMessageText(text: string): ReactNode {
   );
 }
 
-export function ChatShell() {
+type ChatShellProps = {
+  showLogout?: boolean;
+  onLogout?: () => void;
+};
+
+export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
@@ -50,6 +64,11 @@ export function ChatShell() {
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
   const [backendMode, setBackendMode] = useState<string>('dify');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const stored = window.localStorage.getItem('kinetikos_theme');
+    return stored === 'light' || stored === 'dark' ? stored : 'dark';
+  });
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -68,6 +87,11 @@ export function ChatShell() {
     const timer = setInterval(() => setLoadingStage((prev) => (prev + 1) % LOADING_STAGES.length), 1200);
     return () => clearInterval(timer);
   }, [isSubmitting]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('kinetikos_theme', theme);
+  }, [theme]);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
@@ -110,11 +134,15 @@ export function ChatShell() {
         if (errPayload.backend) setBackendMode(errPayload.backend);
         throw new Error(errPayload.error || 'chat request failed');
       }
+
       const payload = (await response.json()) as ChatResponse;
       if (payload.backend) setBackendMode(payload.backend);
-      if (payload.difyConversationId) {
-        setDifyConversationId(payload.difyConversationId);
-      }
+      if (payload.difyConversationId) setDifyConversationId(payload.difyConversationId);
+
+      const safeSuggestions =
+        payload.suggestedQuestions && payload.suggestedQuestions.length > 0
+          ? payload.suggestedQuestions
+          : fallbackSuggestions(text);
 
       setMessages((current) => [
         ...current,
@@ -123,7 +151,7 @@ export function ChatShell() {
           role: 'assistant',
           text: payload.answer,
           citations: payload.citations,
-          suggestedQuestions: payload.suggestedQuestions,
+          suggestedQuestions: safeSuggestions,
         },
       ]);
     } catch (err) {
@@ -137,7 +165,6 @@ export function ChatShell() {
 
   const startNewSession = async () => {
     const currentConversationId = difyConversationId;
-
     if (currentConversationId) {
       await fetch('/api/chat/end-session', {
         method: 'POST',
@@ -176,8 +203,16 @@ export function ChatShell() {
           <strong>Knowledge Copilot</strong>
         </div>
         <nav className="top-banner-nav" aria-label="Account navigation">
-          <a href="/login">Login</a>
-          <a href="/onboarding">Register</a>
+          {showLogout ? (
+            <button type="button" className="suggestion-chip" onClick={onLogout} disabled={!onLogout}>
+              Logout
+            </button>
+          ) : (
+            <>
+              <a href="/login">Login</a>
+              <a href="/onboarding">Register</a>
+            </>
+          )}
         </nav>
       </header>
 
@@ -186,9 +221,7 @@ export function ChatShell() {
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Clinical Agentic RAG</h1>
-
           </div>
-
 
           <div className="rail-card">
             <span className="rail-label">Agent controls</span>
@@ -202,10 +235,7 @@ export function ChatShell() {
                 {enableInternetSearch ? 'ON' : 'OFF'}
               </button>
             </label>
-            <p>
-              OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is
-              insufficient.
-            </p>
+            <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
           </div>
         </aside>
 
@@ -219,12 +249,10 @@ export function ChatShell() {
               <span className="status-dot" />
               <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
               <span>backend: {backendMode}</span>
-              <button
-                type="button"
-                className="suggestion-chip"
-                onClick={() => void startNewSession()}
-                disabled={isSubmitting}
-              >
+              <button type="button" className="suggestion-chip" onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}>
+                Theme: {theme === 'dark' ? 'Dark' : 'Light'}
+              </button>
+              <button type="button" className="suggestion-chip" onClick={() => void startNewSession()} disabled={isSubmitting}>
                 New Session
               </button>
             </div>
@@ -255,7 +283,7 @@ export function ChatShell() {
 
                 {message.suggestedQuestions && message.suggestedQuestions.length > 0 ? (
                   <div className="suggestion-list">
-                    <p className="suggestion-title">You might also ask</p>
+                    <p className="suggestion-title">Try to ask</p>
                     {message.suggestedQuestions.slice(0, 3).map((q) => (
                       <button key={q} type="button" className="suggestion-chip" onClick={() => void sendMessage(q)}>
                         {q}
