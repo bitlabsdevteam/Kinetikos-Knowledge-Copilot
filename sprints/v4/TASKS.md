@@ -10,7 +10,7 @@
   - Acceptance: Startup/runtime check confirms existing table; if absent, create `History` safely and use it.
   - Files: `lib/usage-log.ts`, optional migration/scripts
 
-- [ ] Task 3: Fix Japanese IME-safe submission behavior in composer (P0)
+- [x] Task 3: Fix Japanese IME-safe submission behavior in composer (P0)
   - Acceptance: Enter key does not submit while composing Kanji; submit works normally after composition ends.
   - Files: `components/chat-shell.tsx`
 

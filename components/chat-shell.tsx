@@ -182,8 +182,11 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    const nativeEvent = event.nativeEvent as unknown as { isComposing?: boolean; keyCode?: number };
+    const composing = isComposing || nativeEvent.isComposing || nativeEvent.keyCode === 229;
+
     if (event.key === 'Enter' && !event.shiftKey) {
-      if (isComposing) {
+      if (composing) {
         event.preventDefault();
         return;
       }
