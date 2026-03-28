@@ -22,7 +22,7 @@
   - Acceptance: Clicking control resets active conversation and starts fresh context.
   - Files: `components/chat-shell.tsx`
 
-- [ ] Task 6: Add Dify conversation cleanup endpoint for session close/reset (P1)
+- [x] Task 6: Add Dify conversation cleanup endpoint for session close/reset (P1)
   - Acceptance: Endpoint calls Dify delete conversation API successfully when id provided.
   - Files: `app/api/chat/end-session/route.ts`, optional helper in `lib/dify-client.ts`
 

@@ -78,3 +78,20 @@ export async function chatWithDify(params: {
     conversationId: payload.conversation_id,
   };
 }
+
+export async function deleteDifyConversation(conversationId: string): Promise<void> {
+  if (!DIFY_API_KEY) throw new Error('DIFY_API_KEY missing');
+
+  const res = await fetch(`${DIFY_BASE_URL}/conversations/${conversationId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${DIFY_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Dify delete conversation error ${res.status}: ${text}`);
+  }
+}

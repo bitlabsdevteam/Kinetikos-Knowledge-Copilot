@@ -110,7 +110,17 @@ export function ChatShell() {
     }
   };
 
-  const startNewSession = () => {
+  const startNewSession = async () => {
+    const currentConversationId = difyConversationId;
+
+    if (currentConversationId) {
+      await fetch('/api/chat/end-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ difyConversationId: currentConversationId }),
+      }).catch(() => undefined);
+    }
+
     setDifyConversationId(undefined);
     setSessionId(crypto.randomUUID());
     setMessages(starterMessages);
@@ -183,7 +193,12 @@ export function ChatShell() {
             <div className="status-cluster">
               <span className="status-dot" />
               <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
-              <button type="button" className="suggestion-chip" onClick={startNewSession} disabled={isSubmitting}>
+              <button
+                type="button"
+                className="suggestion-chip"
+                onClick={() => void startNewSession()}
+                disabled={isSubmitting}
+              >
                 New Session
               </button>
             </div>
