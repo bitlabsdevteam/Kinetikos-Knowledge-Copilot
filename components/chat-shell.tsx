@@ -64,7 +64,11 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
   const [backendMode, setBackendMode] = useState<string>('dify');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const stored = window.localStorage.getItem('kinetikos_theme');
+    return stored === 'light' || stored === 'dark' ? stored : 'dark';
+  });
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -83,13 +87,6 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     const timer = setInterval(() => setLoadingStage((prev) => (prev + 1) % LOADING_STAGES.length), 1200);
     return () => clearInterval(timer);
   }, [isSubmitting]);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem('kinetikos_theme');
-    if (stored === 'dark' || stored === 'light') {
-      setTheme(stored);
-    }
-  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);

@@ -26,7 +26,7 @@
   - Acceptance: Selected theme remains after refresh via localStorage restoration.
   - Files: `components/chat-shell.tsx`
 
-- [ ] Task 7: Add tests for logout behavior and theme persistence (P2)
+- [x] Task 7: Add tests for logout behavior and theme persistence (P2)
   - Acceptance: Test coverage validates logout redirect + theme restore basics.
   - Files: `tests/e2e/` and/or unit tests
 
