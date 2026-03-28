@@ -280,14 +280,19 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                   </div>
                 ) : null}
 
-                {message.suggestedQuestions && message.suggestedQuestions.length > 0 ? (
+                {message.role === 'assistant' ? (
                   <div className="suggestion-list">
                     <p className="suggestion-title">Try to ask</p>
-                    {message.suggestedQuestions.slice(0, 3).map((q) => (
-                      <button key={q} type="button" className="suggestion-chip" onClick={() => void sendMessage(q)}>
-                        {q}
-                      </button>
-                    ))}
+                    {(message.suggestedQuestions && message.suggestedQuestions.length > 0
+                      ? message.suggestedQuestions
+                      : fallbackSuggestions(message.text)
+                    )
+                      .slice(0, 3)
+                      .map((q) => (
+                        <button key={q} type="button" className="suggestion-chip" onClick={() => void sendMessage(q)}>
+                          {q}
+                        </button>
+                      ))}
                   </div>
                 ) : null}
               </article>

@@ -10,7 +10,7 @@
   - Acceptance: Header no longer displays “Knowledge Copilot” text while preserving layout quality.
   - Files: `components/chat-shell.tsx`
 
-- [ ] Task 3: Ensure “Try to ask” section is always visible for assistant responses (P0)
+- [x] Task 3: Ensure “Try to ask” section is always visible for assistant responses (P0)
   - Acceptance: Assistant messages show “Try to ask” chips from backend suggestions or fallback generation.
   - Files: `components/chat-shell.tsx`
 
