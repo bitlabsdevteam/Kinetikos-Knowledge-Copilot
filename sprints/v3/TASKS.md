@@ -34,6 +34,6 @@
   - Acceptance: Tests verify tenant context creation/resolution and enforcement behavior.
   - Files: `tests/` (unit/integration), tenant helper files
 
-- [ ] Task 9: Update v3 walkthrough with runbook, tenant model notes, and residual risks (P2)
+- [x] Task 9: Update v3 walkthrough with runbook, tenant model notes, and residual risks (P2)
   - Acceptance: `sprints/v3/WALKTHROUGH.md` documents implementation and validation steps.
   - Files: `sprints/v3/WALKTHROUGH.md`
