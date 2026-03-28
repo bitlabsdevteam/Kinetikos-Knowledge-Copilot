@@ -1,6 +1,6 @@
 'use client';
 
-import { KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { KeyboardEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 
 import type { ChatMessage, ChatResponse } from '@/lib/contracts';
 import { HOST_USER_EVENT_TYPE, isHostUserPayload } from '@/lib/host-user';
@@ -15,6 +15,27 @@ const starterMessages: ChatMessage[] = [
 ];
 
 const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
+
+function renderMessageText(text: string): ReactNode {
+  const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return <p>{text}</p>;
+
+  const bulletLines = lines.filter((line) => /^([-*]|\d+\.)\s+/.test(line));
+  const paragraphLines = lines.filter((line) => !/^([-*]|\d+\.)\s+/.test(line));
+
+  return (
+    <>
+      {paragraphLines.length > 0 ? <p>{paragraphLines.join(' ')}</p> : null}
+      {bulletLines.length > 0 ? (
+        <ul>
+          {bulletLines.map((line, idx) => (
+            <li key={`${line}-${idx}`}>{line.replace(/^([-*]|\d+\.)\s+/, '')}</li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
+}
 
 export function ChatShell() {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
@@ -210,10 +231,11 @@ export function ChatShell() {
                 <div className="message-meta">
                   <span className="message-role">{message.role === 'assistant' ? 'AYA' : 'User'}</span>
                 </div>
-                <p>{message.text}</p>
+                <div className="message-text">{renderMessageText(message.text)}</div>
 
                 {message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
+                    <p className="suggestion-title">Sources</p>
                     {message.citations.map((citation) => (
                       <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
                         <div className="citation-head">

@@ -305,6 +305,21 @@ a {
   font-size: 1rem;
 }
 
+.message-text {
+  display: grid;
+  gap: 10px;
+}
+
+.message-text ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.message-text li {
+  margin: 0.2rem 0;
+  line-height: 1.7;
+}
+
 .citation-list {
   display: grid;
   gap: 12px;

@@ -26,7 +26,7 @@
   - Acceptance: Endpoint calls Dify delete conversation API successfully when id provided.
   - Files: `app/api/chat/end-session/route.ts`, optional helper in `lib/dify-client.ts`
 
-- [ ] Task 7: Polish RAG output formatting (paragraphs, bullets, citation block) (P1)
+- [x] Task 7: Polish RAG output formatting (paragraphs, bullets, citation block) (P1)
   - Acceptance: Responses render structured text without clunky placeholders; citations remain deterministic.
   - Files: `components/chat-shell.tsx`, `lib/dify-client.ts`
 
