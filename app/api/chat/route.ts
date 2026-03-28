@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import type { ChatRequest } from '@/lib/contracts';
 import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
+import { resolveTenantContext } from '@/lib/tenant-context';
 import { appendUsageLog } from '@/lib/usage-log';
 
 export async function POST(request: Request) {
@@ -16,6 +17,10 @@ export async function POST(request: Request) {
   const userId = body.userId?.trim() || null;
   const difyUserId = userId ?? `anon-${sessionId}`;
   const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
+  const tenant = await resolveTenantContext({
+    externalUserId: userId,
+    userDisplayName: body.userDisplayName?.trim() || null,
+  });
 
   if (!isDifyEnabled()) {
     return NextResponse.json(
@@ -40,6 +45,7 @@ export async function POST(request: Request) {
         enable_internet_search: Boolean(body.enableInternetSearch),
         session_id: sessionId,
         user_display_name: body.userDisplayName?.trim() || null,
+        tenant_id: tenant.tenantId,
       },
     });
     response = result.response;
@@ -59,6 +65,7 @@ export async function POST(request: Request) {
     sessionId,
     userId,
     userDisplayName: body.userDisplayName?.trim() || null,
+    tenantId: tenant.tenantId,
     message,
     answer: response.answer,
     grounded: response.grounded,
@@ -71,6 +78,7 @@ export async function POST(request: Request) {
     sessionUserId: userId,
     difyConversationId: conversationId,
     backend,
+    tenantId: tenant.tenantId,
   });
   res.headers.set('x-rag-backend', backend);
   return res;

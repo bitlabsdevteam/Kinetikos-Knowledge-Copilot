@@ -7,6 +7,7 @@ export type UsageLogEntry = {
   timestamp: string;
   sessionId: string;
   userId: string | null;
+  tenantId: string;
   userDisplayName?: string | null;
   message: string;
   answer?: string;

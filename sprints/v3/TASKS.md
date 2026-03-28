@@ -14,7 +14,7 @@
   - Acceptance: Assistant messages show “Try to ask” chips from backend suggestions or fallback generation.
   - Files: `components/chat-shell.tsx`
 
-- [ ] Task 4: Add tenant context resolver (user -> tenant_id) in server logic (P0)
+- [x] Task 4: Add tenant context resolver (user -> tenant_id) in server logic (P0)
   - Acceptance: Auth user deterministically resolves to one tenant_id; first-time users are provisioned safely.
   - Files: `lib/tenant-context.ts`, `app/api/chat/route.ts`
 
