@@ -24,6 +24,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (authError === 'oauth_callback_failed') {
+      setError('Could not complete OAuth callback. Please try again.');
+      return;
+    }
+
     setError(authError);
   }, []);
 
