@@ -87,6 +87,32 @@ a {
   padding: 32px;
 }
 
+.top-banner {
+  width: min(1440px, 100%);
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.top-banner-nav {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.top-banner-nav a,
+.top-banner-nav button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+
 .ambient-orb {
   position: fixed;
   width: 360px;
