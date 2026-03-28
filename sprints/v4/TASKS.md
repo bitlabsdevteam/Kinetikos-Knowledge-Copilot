@@ -30,7 +30,7 @@
   - Acceptance: Chat API can allow/deny/limit by member_level/permissions input; denial returns explicit error.
   - Files: `lib/access-policy.ts`, `app/api/chat/route.ts`
 
-- [ ] Task 8: Add Craft CMS access-context contract and validation layer (P0)
+- [x] Task 8: Add Craft CMS access-context contract and validation layer (P0)
   - Acceptance: API accepts validated access context from container and applies policy reliably.
   - Files: `lib/contracts.ts`, `app/api/chat/route.ts`, docs
 

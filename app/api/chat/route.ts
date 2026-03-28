@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { validateAccessContext } from '@/lib/access-context';
 import { evaluateAccessPolicy } from '@/lib/access-policy';
 import type { ChatRequest } from '@/lib/contracts';
 import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
@@ -10,12 +11,6 @@ export async function POST(request: Request) {
   const body = (await request.json()) as Partial<ChatRequest> & {
     tenantId?: string;
     difyConversationId?: string;
-    accessContext?: {
-      memberLevel?: string;
-      permissions?: string[];
-      usageCountToday?: number;
-      usageLimitOverride?: number;
-    };
   };
 
   if (!body.message || !body.message.trim()) {
@@ -27,13 +22,12 @@ export async function POST(request: Request) {
   const userId = body.userId?.trim() || null;
   const effectiveUserId = userId ?? `anon-${sessionId}`;
 
-  const policy = evaluateAccessPolicy({
-    memberLevel: body.accessContext?.memberLevel,
-    permissions: body.accessContext?.permissions,
-    usageCountToday: body.accessContext?.usageCountToday,
-    usageLimitOverride: body.accessContext?.usageLimitOverride,
-  });
+  const accessValidation = validateAccessContext(body.accessContext);
+  if (!accessValidation.ok) {
+    return NextResponse.json({ error: accessValidation.error, code: 'invalid_access_context' }, { status: 400 });
+  }
 
+  const policy = evaluateAccessPolicy(accessValidation.value);
   if (!policy.allowed) {
     return NextResponse.json({ error: policy.reason, code: 'policy_denied' }, { status: 403 });
   }
