@@ -38,6 +38,6 @@
   - Acceptance: Tests cover IME enter behavior, citation click path, and policy deny/allow paths.
   - Files: `tests/e2e/v4-*.spec.ts`, `tests/screenshots/`
 
-- [ ] Task 10: Publish v4 walkthrough with implementation proof and residual risks (P2)
+- [x] Task 10: Publish v4 walkthrough with implementation proof and residual risks (P2)
   - Acceptance: `sprints/v4/WALKTHROUGH.md` includes commands, demo steps, and known limits.
   - Files: `sprints/v4/WALKTHROUGH.md`
