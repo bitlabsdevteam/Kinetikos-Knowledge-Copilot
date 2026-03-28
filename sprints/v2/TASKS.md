@@ -30,6 +30,6 @@
   - Acceptance: Test coverage validates logout redirect + theme restore basics.
   - Files: `tests/e2e/` and/or unit tests
 
-- [ ] Task 8: Update v2 walkthrough with commands, demo steps, and known gaps (P2)
+- [x] Task 8: Update v2 walkthrough with commands, demo steps, and known gaps (P2)
   - Acceptance: `sprints/v2/WALKTHROUGH.md` added with reproducible test flow.
   - Files: `sprints/v2/WALKTHROUGH.md`
