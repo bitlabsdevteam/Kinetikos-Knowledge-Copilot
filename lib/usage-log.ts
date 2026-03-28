@@ -45,13 +45,17 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
     },
   };
 
-  const candidates = [process.env.SUPABASE_CONVERSATION_TABLE, 'customer_conversation_history', 'custome_conversation_history'].filter(
-    Boolean,
-  ) as string[];
+  const candidates = [
+    process.env.SUPABASE_CONVERSATION_TABLE,
+    'customer_conversation_history',
+    'custome_conversation_history',
+    'History',
+  ].filter(Boolean) as string[];
 
   let lastError = '';
   for (const table of candidates) {
-    const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+    const encodedTable = encodeURIComponent(table);
+    const response = await fetch(`${supabaseUrl}/rest/v1/${encodedTable}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

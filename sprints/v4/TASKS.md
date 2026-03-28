@@ -6,7 +6,7 @@
   - Acceptance: Every user/assistant turn is stored with user_id, tenant_id, session_id, timestamp.
   - Files: `app/api/chat/route.ts`, `lib/usage-log.ts`
 
-- [ ] Task 2: Verify Supabase history table existence and auto-create fallback `History` table if missing (P0)
+- [x] Task 2: Verify Supabase history table existence and auto-create fallback `History` table if missing (P0)
   - Acceptance: Startup/runtime check confirms existing table; if absent, create `History` safely and use it.
   - Files: `lib/usage-log.ts`, optional migration/scripts
 
