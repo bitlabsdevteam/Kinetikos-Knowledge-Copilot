@@ -1,4 +1,4 @@
-import { mkdir, appendFile } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { ChatResponse } from '@/lib/contracts';
@@ -13,6 +13,8 @@ export type UsageLogEntry = {
   answer?: string;
   grounded: ChatResponse['grounded'];
   citationIds: string[];
+  history?: Array<{ role: 'user' | 'assistant'; text: string }>;
+  difyConversationId?: string | null;
 };
 
 const dataDirectory = path.join(process.cwd(), 'data');
@@ -28,7 +30,7 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
   }
 
   const payload = {
-    tenant_id: process.env.RAG_DEFAULT_TENANT ?? 'global_kinetikos',
+    tenant_id: entry.tenantId,
     session_id: entry.sessionId,
     user_id: entry.userId,
     user_display_name: entry.userDisplayName ?? null,
@@ -36,14 +38,16 @@ async function appendSupabaseConversationHistory(entry: UsageLogEntry) {
     assistant_answer: entry.answer ?? null,
     grounded: entry.grounded,
     citation_ids: entry.citationIds,
-    metadata: { timestamp: entry.timestamp },
+    metadata: {
+      timestamp: entry.timestamp,
+      history: entry.history ?? [],
+      dify_conversation_id: entry.difyConversationId ?? null,
+    },
   };
 
-  const candidates = [
-    process.env.SUPABASE_CONVERSATION_TABLE,
-    'customer_conversation_history',
-    'custome_conversation_history',
-  ].filter(Boolean) as string[];
+  const candidates = [process.env.SUPABASE_CONVERSATION_TABLE, 'customer_conversation_history', 'custome_conversation_history'].filter(
+    Boolean,
+  ) as string[];
 
   let lastError = '';
   for (const table of candidates) {
@@ -76,7 +80,6 @@ export async function appendUsageLog(entry: UsageLogEntry) {
     await mkdir(dataDirectory, { recursive: true });
     await appendFile(usageLogPath, `${JSON.stringify(entry)}\n`, 'utf8');
   } catch (error) {
-    // Local filesystem can be read-only in serverless. Ignore.
     console.warn('[usage-log] Local file log failed.', error);
   }
 }

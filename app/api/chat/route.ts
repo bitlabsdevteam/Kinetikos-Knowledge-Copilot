@@ -74,13 +74,15 @@ export async function POST(request: Request) {
   await appendUsageLog({
     timestamp: new Date().toISOString(),
     sessionId,
-    userId,
+    userId: userId ?? effectiveUserId,
     userDisplayName: body.userDisplayName?.trim() || null,
     tenantId: tenant.tenantId,
     message,
     answer: response.answer,
     grounded: response.grounded,
     citationIds: response.citations.map((citation) => citation.id),
+    history: body.history?.map((h) => ({ role: h.role, text: h.text })) ?? [],
+    difyConversationId: conversationId ?? difyConversationId ?? null,
   });
 
   const res = NextResponse.json({
