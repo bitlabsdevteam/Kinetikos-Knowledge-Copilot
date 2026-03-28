@@ -34,7 +34,7 @@
   - Acceptance: Response clearly shows backend mode and actionable error when env missing.
   - Files: `app/api/chat/route.ts`, `components/chat-shell.tsx`
 
-- [ ] Task 9: Add minimal E2E checks for login redirect + chat submit path (P2)
+- [x] Task 9: Add minimal E2E checks for login redirect + chat submit path (P2)
   - Acceptance: Basic Playwright flow validates route guard and first chat call path.
   - Files: `tests/e2e/auth-chat.spec.ts`, `playwright.config.ts` (if needed)
 
