@@ -14,7 +14,7 @@
   - Acceptance: Unauthenticated access to `/app` redirects to `/login`; authenticated user can access `/app`.
   - Files: `middleware.ts` or route guard file, `app/app/page.tsx`
 
-- [ ] Task 4: Persist and reuse Dify conversation_id per active session (P0)
+- [x] Task 4: Persist and reuse Dify conversation_id per active session (P0)
   - Acceptance: Second message in same session includes prior context and no reset behavior.
   - Files: `components/chat-shell.tsx`, `app/api/chat/route.ts`
 

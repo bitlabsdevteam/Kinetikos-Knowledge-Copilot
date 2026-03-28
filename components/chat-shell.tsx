@@ -27,6 +27,7 @@ export function ChatShell() {
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
   const [enableInternetSearch, setEnableInternetSearch] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -75,6 +76,7 @@ export function ChatShell() {
           userId: userId ?? undefined,
           userDisplayName: userDisplayName ?? undefined,
           enableInternetSearch,
+          difyConversationId,
         }),
       });
 
@@ -85,6 +87,9 @@ export function ChatShell() {
         throw new Error(errPayload.error || 'chat request failed');
       }
       const payload = (await response.json()) as ChatResponse;
+      if (payload.difyConversationId) {
+        setDifyConversationId(payload.difyConversationId);
+      }
 
       setMessages((current) => [
         ...current,

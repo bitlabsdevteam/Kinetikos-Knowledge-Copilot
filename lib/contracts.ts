@@ -34,4 +34,5 @@ export type ChatResponse = {
   suggestedQuestions?: string[];
   sessionId?: string;
   sessionUserId?: string | null;
+  difyConversationId?: string;
 };
