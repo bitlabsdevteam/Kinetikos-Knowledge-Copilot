@@ -26,7 +26,7 @@
   - Acceptance: API path does not allow reading/writing another tenant’s data by crafted client input.
   - Files: `app/api/chat/route.ts`, tenant utility modules
 
-- [ ] Task 7: Add E2E checks for header controls placement + Try to ask visibility (P1)
+- [x] Task 7: Add E2E checks for header controls placement + Try to ask visibility (P1)
   - Acceptance: Playwright confirms top-right account controls and visible Try to ask chips after response.
   - Files: `tests/e2e/v3-ui-tenant-shell.spec.ts`, `tests/screenshots/`
 
