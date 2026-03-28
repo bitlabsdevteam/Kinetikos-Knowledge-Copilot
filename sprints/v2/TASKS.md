@@ -10,7 +10,7 @@
   - Acceptance: Clicking logout signs out user and redirects to `/login`; returning `/app` unauthenticated redirects to `/login`.
   - Files: `app/app/page.tsx` and/or auth helper files
 
-- [ ] Task 3: Add “Try to ask” section under assistant response using suggested questions (P1)
+- [x] Task 3: Add “Try to ask” section under assistant response using suggested questions (P1)
   - Acceptance: When `suggestedQuestions` exist, UI displays heading `Try to ask` and clickable prompt chips.
   - Files: `components/chat-shell.tsx`
 
