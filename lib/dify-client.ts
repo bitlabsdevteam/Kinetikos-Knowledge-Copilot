@@ -9,6 +9,9 @@ type DifyRetrieverResource = {
   dataset_id?: string;
   document_id?: string;
   segment_id?: string;
+  source_url?: string;
+  url?: string;
+  link?: string;
 };
 
 type DifyBlockingResponse = {
@@ -29,11 +32,12 @@ export function isDifyEnabled() {
 function mapCitations(resources: DifyRetrieverResource[] = []): ChatResponse['citations'] {
   return resources.slice(0, 4).map((r, i) => {
     const trustedTitle = r.document_name?.trim();
+    const href = r.source_url?.trim() || r.url?.trim() || r.link?.trim() || '#';
     return {
       id: r.segment_id ?? `${r.document_id ?? 'doc'}-${i}`,
       title: trustedTitle && trustedTitle.length > 0 ? trustedTitle : `Document ${String(r.document_id ?? i).slice(0, 8)}`,
       sourceType: 'manual',
-      href: '#',
+      href,
       excerpt: (r.segment ?? '').slice(0, 180),
     };
   });

@@ -18,7 +18,7 @@
   - Acceptance: Citation titles match trusted source metadata and are not auto-translated/rewritten.
   - Files: `lib/dify-client.ts`, `components/chat-shell.tsx`
 
-- [ ] Task 5: Make citation links one-click direct and remove empty OG placeholder blocks (P1)
+- [x] Task 5: Make citation links one-click direct and remove empty OG placeholder blocks (P1)
   - Acceptance: Citation card click goes directly to source URL; no dead OG-image placeholder regions.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 

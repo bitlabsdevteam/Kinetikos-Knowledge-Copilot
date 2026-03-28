@@ -271,15 +271,31 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 {message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
                     <p className="suggestion-title">Sources</p>
-                    {message.citations.map((citation) => (
-                      <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
-                        <div className="citation-head">
-                          <strong>{citation.title}</strong>
-                          <span>{citation.sourceType}</span>
+                    {message.citations.map((citation) => {
+                      const content = (
+                        <>
+                          <div className="citation-head">
+                            <strong>{citation.title}</strong>
+                            <span>{citation.sourceType}</span>
+                          </div>
+                          <p>{citation.excerpt}</p>
+                        </>
+                      );
+
+                      if (citation.href && citation.href !== '#') {
+                        return (
+                          <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
+                            {content}
+                          </a>
+                        );
+                      }
+
+                      return (
+                        <div key={citation.id} className="citation-card citation-card-disabled">
+                          {content}
                         </div>
-                        <p>{citation.excerpt}</p>
-                      </a>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : null}
 
