@@ -34,7 +34,7 @@
   - Acceptance: API accepts validated access context from container and applies policy reliably.
   - Files: `lib/contracts.ts`, `app/api/chat/route.ts`, docs
 
-- [ ] Task 9: Add E2E + integration tests for IME safety, citation rendering, and access policy gates (P1)
+- [x] Task 9: Add E2E + integration tests for IME safety, citation rendering, and access policy gates (P1)
   - Acceptance: Tests cover IME enter behavior, citation click path, and policy deny/allow paths.
   - Files: `tests/e2e/v4-*.spec.ts`, `tests/screenshots/`
 
