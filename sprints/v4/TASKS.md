@@ -14,7 +14,7 @@
   - Acceptance: Enter key does not submit while composing Kanji; submit works normally after composition ends.
   - Files: `components/chat-shell.tsx`
 
-- [ ] Task 4: Normalize citation title/label rendering to preserve source fidelity (P1)
+- [x] Task 4: Normalize citation title/label rendering to preserve source fidelity (P1)
   - Acceptance: Citation titles match trusted source metadata and are not auto-translated/rewritten.
   - Files: `lib/dify-client.ts`, `components/chat-shell.tsx`
 

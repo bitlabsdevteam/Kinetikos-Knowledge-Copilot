@@ -27,13 +27,16 @@ export function isDifyEnabled() {
 }
 
 function mapCitations(resources: DifyRetrieverResource[] = []): ChatResponse['citations'] {
-  return resources.slice(0, 4).map((r, i) => ({
-    id: r.segment_id ?? `${r.document_id ?? 'doc'}-${i}`,
-    title: r.document_name ?? `Source ${i + 1}`,
-    sourceType: 'manual',
-    href: '#',
-    excerpt: (r.segment ?? '').slice(0, 180),
-  }));
+  return resources.slice(0, 4).map((r, i) => {
+    const trustedTitle = r.document_name?.trim();
+    return {
+      id: r.segment_id ?? `${r.document_id ?? 'doc'}-${i}`,
+      title: trustedTitle && trustedTitle.length > 0 ? trustedTitle : `Document ${String(r.document_id ?? i).slice(0, 8)}`,
+      sourceType: 'manual',
+      href: '#',
+      excerpt: (r.segment ?? '').slice(0, 180),
+    };
+  });
 }
 
 export async function chatWithDify(params: {
