@@ -182,7 +182,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
         </div>
         <nav className="top-banner-nav" aria-label="Account navigation">
           {showLogout ? (
-            <button type="button" className="suggestion-chip" onClick={onLogout}>
+            <button type="button" className="suggestion-chip" onClick={onLogout} disabled={!onLogout}>
               Logout
             </button>
           ) : (

@@ -6,7 +6,7 @@
   - Acceptance: `/app` shows a logout control when session exists.
   - Files: `app/app/page.tsx`, `components/chat-shell.tsx` (if shared header)
 
-- [ ] Task 2: Implement functional logout flow with Supabase signOut and redirect to login (P0)
+- [x] Task 2: Implement functional logout flow with Supabase signOut and redirect to login (P0)
   - Acceptance: Clicking logout signs out user and redirects to `/login`; returning `/app` unauthenticated redirects to `/login`.
   - Files: `app/app/page.tsx` and/or auth helper files
 

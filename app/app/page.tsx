@@ -40,9 +40,15 @@ export default function WorkspacePage() {
     return <main style={{ padding: 24 }}>Checking authentication…</main>;
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsAuthed(false);
+    window.location.href = '/login';
+  };
+
   if (!isAuthed) {
     return <main style={{ padding: 24 }}>Redirecting to login…</main>;
   }
 
-  return <ChatShell showLogout />;
+  return <ChatShell showLogout onLogout={handleLogout} />;
 }
