@@ -10,7 +10,7 @@
   - Acceptance: Clicking Google login redirects and returns to app callback without runtime errors.
   - Files: `app/login/page.tsx`, `app/auth/callback/route.ts`
 
-- [ ] Task 3: Protect chat workspace route by session check (P0)
+- [x] Task 3: Protect chat workspace route by session check (P0)
   - Acceptance: Unauthenticated access to `/app` redirects to `/login`; authenticated user can access `/app`.
   - Files: `middleware.ts` or route guard file, `app/app/page.tsx`
 
