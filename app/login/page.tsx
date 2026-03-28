@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { createBrowserSupabaseClient } from '@/lib/supabase-client';
 
@@ -10,11 +10,28 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
+  useEffect(() => {
+    const authError = new URLSearchParams(window.location.search).get('error');
+    if (!authError) return;
+
+    if (authError === 'oauth_exchange_failed') {
+      setError('Google OAuth callback failed. Please retry login.');
+      return;
+    }
+
+    if (authError === 'missing_code') {
+      setError('Missing auth code from provider callback.');
+      return;
+    }
+
+    setError(authError);
+  }, []);
+
   const handleGoogle = async () => {
     setIsLoading(true);
     setError(null);
-    const redirectTo = `${window.location.origin}/auth/callback`;
 
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },

@@ -6,7 +6,7 @@
   - Acceptance: `app/login`, `app/auth/callback`, and shared auth helper compile cleanly.
   - Files: `app/login/page.tsx`, `app/auth/callback/route.ts`, `lib/supabase-client.ts`
 
-- [ ] Task 2: Wire Google login action and callback exchange (P0)
+- [x] Task 2: Wire Google login action and callback exchange (P0)
   - Acceptance: Clicking Google login redirects and returns to app callback without runtime errors.
   - Files: `app/login/page.tsx`, `app/auth/callback/route.ts`
 
