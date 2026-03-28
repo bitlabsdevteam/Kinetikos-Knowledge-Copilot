@@ -38,6 +38,6 @@
   - Acceptance: Basic Playwright flow validates route guard and first chat call path.
   - Files: `tests/e2e/auth-chat.spec.ts`, `playwright.config.ts` (if needed)
 
-- [ ] Task 10: Update sprint walkthrough with run/test and known gaps (P2)
+- [x] Task 10: Update sprint walkthrough with run/test and known gaps (P2)
   - Acceptance: `sprints/v1/WALKTHROUGH.md` created with reproducible steps and remaining risks.
   - Files: `sprints/v1/WALKTHROUGH.md`
