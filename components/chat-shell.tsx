@@ -26,7 +26,7 @@ export function ChatShell() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
   const [enableInternetSearch, setEnableInternetSearch] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
 
   useEffect(() => {
@@ -110,6 +110,15 @@ export function ChatShell() {
     }
   };
 
+  const startNewSession = () => {
+    setDifyConversationId(undefined);
+    setSessionId(crypto.randomUUID());
+    setMessages(starterMessages);
+    setInput('');
+    setError(null);
+    setIsSubmitting(false);
+  };
+
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       if (isComposing) {
@@ -174,6 +183,9 @@ export function ChatShell() {
             <div className="status-cluster">
               <span className="status-dot" />
               <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
+              <button type="button" className="suggestion-chip" onClick={startNewSession} disabled={isSubmitting}>
+                New Session
+              </button>
             </div>
           </header>
 

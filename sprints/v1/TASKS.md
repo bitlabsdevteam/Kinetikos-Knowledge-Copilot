@@ -18,7 +18,7 @@
   - Acceptance: Second message in same session includes prior context and no reset behavior.
   - Files: `components/chat-shell.tsx`, `app/api/chat/route.ts`
 
-- [ ] Task 5: Add explicit “New Session” control to clear conversation state (P1)
+- [x] Task 5: Add explicit “New Session” control to clear conversation state (P1)
   - Acceptance: Clicking control resets active conversation and starts fresh context.
   - Files: `components/chat-shell.tsx`
 
