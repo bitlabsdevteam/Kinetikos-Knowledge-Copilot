@@ -30,7 +30,7 @@
   - Acceptance: Playwright confirms top-right account controls and visible Try to ask chips after response.
   - Files: `tests/e2e/v3-ui-tenant-shell.spec.ts`, `tests/screenshots/`
 
-- [ ] Task 8: Add integration test for tenant resolver and tenant_id enforcement (P1)
+- [x] Task 8: Add integration test for tenant resolver and tenant_id enforcement (P1)
   - Acceptance: Tests verify tenant context creation/resolution and enforcement behavior.
   - Files: `tests/` (unit/integration), tenant helper files
 

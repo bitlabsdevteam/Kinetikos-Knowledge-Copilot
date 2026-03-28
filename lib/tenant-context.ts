@@ -3,11 +3,21 @@ type TenantContext = {
   source: 'membership' | 'provisioned' | 'default';
 };
 
-const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const defaultTenant = process.env.RAG_DEFAULT_TENANT ?? 'global_kinetikos';
+function getSupabaseUrl() {
+  return process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+}
+
+function getServiceRoleKey() {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
+function getDefaultTenant() {
+  return process.env.RAG_DEFAULT_TENANT ?? 'global_kinetikos';
+}
 
 async function supabaseFetch(path: string, init?: RequestInit) {
+  const supabaseUrl = getSupabaseUrl();
+  const serviceRoleKey = getServiceRoleKey();
   if (!supabaseUrl || !serviceRoleKey) throw new Error('Supabase service role config missing');
 
   return fetch(`${supabaseUrl}/rest/v1/${path}`, {
@@ -96,15 +106,15 @@ export async function resolveTenantContext(params: {
   userDisplayName?: string | null;
 }): Promise<TenantContext> {
   const externalUserId = params.externalUserId?.trim();
-  if (!externalUserId || !supabaseUrl || !serviceRoleKey) {
-    return { tenantId: defaultTenant, source: 'default' };
+  if (!externalUserId || !getSupabaseUrl() || !getServiceRoleKey()) {
+    return { tenantId: getDefaultTenant(), source: 'default' };
   }
 
   const existingUserId = await findUserId(externalUserId);
   const userId = existingUserId ?? (await upsertUser(externalUserId, params.userDisplayName));
 
   if (!userId) {
-    return { tenantId: defaultTenant, source: 'default' };
+    return { tenantId: getDefaultTenant(), source: 'default' };
   }
 
   const existingTenant = await findMembershipTenantId(userId);
@@ -114,7 +124,7 @@ export async function resolveTenantContext(params: {
 
   const tenantId = await upsertTenant(externalUserId);
   if (!tenantId) {
-    return { tenantId: defaultTenant, source: 'default' };
+    return { tenantId: getDefaultTenant(), source: 'default' };
   }
 
   await upsertMembership(tenantId, userId);
