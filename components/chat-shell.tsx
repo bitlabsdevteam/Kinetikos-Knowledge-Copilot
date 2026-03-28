@@ -37,7 +37,12 @@ function renderMessageText(text: string): ReactNode {
   );
 }
 
-export function ChatShell() {
+type ChatShellProps = {
+  showLogout?: boolean;
+  onLogout?: () => void;
+};
+
+export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
@@ -176,8 +181,16 @@ export function ChatShell() {
           <strong>Knowledge Copilot</strong>
         </div>
         <nav className="top-banner-nav" aria-label="Account navigation">
-          <a href="/login">Login</a>
-          <a href="/onboarding">Register</a>
+          {showLogout ? (
+            <button type="button" className="suggestion-chip" onClick={onLogout}>
+              Logout
+            </button>
+          ) : (
+            <>
+              <a href="/login">Login</a>
+              <a href="/onboarding">Register</a>
+            </>
+          )}
         </nav>
       </header>
 

@@ -44,5 +44,5 @@ export default function WorkspacePage() {
     return <main style={{ padding: 24 }}>Redirecting to login…</main>;
   }
 
-  return <ChatShell />;
+  return <ChatShell showLogout />;
 }
