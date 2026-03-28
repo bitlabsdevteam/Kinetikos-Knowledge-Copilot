@@ -21,7 +21,7 @@ function fallbackSuggestions(fromPrompt: string): string[] {
   return [
     `Can you summarize this in 3 key points?${topic ? ` (${topic})` : ''}`,
     'What are the risks, limitations, or contraindications?',
-    'What should I ask next to validate this answer?'
+    'What should I ask next to validate this answer?',
   ];
 }
 
@@ -64,6 +64,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
   const [backendMode, setBackendMode] = useState<string>('dify');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -82,6 +83,10 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     const timer = setInterval(() => setLoadingStage((prev) => (prev + 1) % LOADING_STAGES.length), 1200);
     return () => clearInterval(timer);
   }, [isSubmitting]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
@@ -124,11 +129,10 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
         if (errPayload.backend) setBackendMode(errPayload.backend);
         throw new Error(errPayload.error || 'chat request failed');
       }
+
       const payload = (await response.json()) as ChatResponse;
       if (payload.backend) setBackendMode(payload.backend);
-      if (payload.difyConversationId) {
-        setDifyConversationId(payload.difyConversationId);
-      }
+      if (payload.difyConversationId) setDifyConversationId(payload.difyConversationId);
 
       const safeSuggestions =
         payload.suggestedQuestions && payload.suggestedQuestions.length > 0
@@ -156,7 +160,6 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
 
   const startNewSession = async () => {
     const currentConversationId = difyConversationId;
-
     if (currentConversationId) {
       await fetch('/api/chat/end-session', {
         method: 'POST',
@@ -213,9 +216,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Clinical Agentic RAG</h1>
-
           </div>
-
 
           <div className="rail-card">
             <span className="rail-label">Agent controls</span>
@@ -229,10 +230,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 {enableInternetSearch ? 'ON' : 'OFF'}
               </button>
             </label>
-            <p>
-              OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is
-              insufficient.
-            </p>
+            <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
           </div>
         </aside>
 
@@ -246,12 +244,10 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
               <span className="status-dot" />
               <span>{enableInternetSearch ? 'Agentic RAG + Internet' : 'Agentic RAG Only'}</span>
               <span>backend: {backendMode}</span>
-              <button
-                type="button"
-                className="suggestion-chip"
-                onClick={() => void startNewSession()}
-                disabled={isSubmitting}
-              >
+              <button type="button" className="suggestion-chip" onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}>
+                Theme: {theme === 'dark' ? 'Dark' : 'Light'}
+              </button>
+              <button type="button" className="suggestion-chip" onClick={() => void startNewSession()} disabled={isSubmitting}>
                 New Session
               </button>
             </div>

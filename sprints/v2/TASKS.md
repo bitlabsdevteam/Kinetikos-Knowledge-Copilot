@@ -18,7 +18,7 @@
   - Acceptance: At least 2-3 safe prompts appear for eligible responses when no suggestions provided.
   - Files: `components/chat-shell.tsx` and/or `app/api/chat/route.ts`
 
-- [ ] Task 5: Add Light/Dark theme toggle control in top UI (P1)
+- [x] Task 5: Add Light/Dark theme toggle control in top UI (P1)
   - Acceptance: User can switch theme from UI; visual palette updates immediately.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
