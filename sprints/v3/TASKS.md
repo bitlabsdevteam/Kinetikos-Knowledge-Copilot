@@ -6,7 +6,7 @@
   - Acceptance: Login/Logout controls are consistently rendered at top-right in both guest and authenticated states.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
-- [ ] Task 2: Remove “Knowledge Copilot” label from page header (P0)
+- [x] Task 2: Remove “Knowledge Copilot” label from page header (P0)
   - Acceptance: Header no longer displays “Knowledge Copilot” text while preserving layout quality.
   - Files: `components/chat-shell.tsx`
 

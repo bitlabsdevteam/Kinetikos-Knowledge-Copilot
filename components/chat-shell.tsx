@@ -200,7 +200,6 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
       <header className="top-banner">
         <div>
           <p className="eyebrow">Kinetikos</p>
-          <strong>Knowledge Copilot</strong>
         </div>
         <nav className="top-banner-nav" aria-label="Account navigation">
           {showLogout ? (
