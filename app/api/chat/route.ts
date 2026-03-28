@@ -15,12 +15,20 @@ export async function POST(request: Request) {
   const message = body.message.trim();
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
   const userId = body.userId?.trim() || null;
-  const difyUserId = userId ?? `anon-${sessionId}`;
+  if (!userId) {
+    return NextResponse.json({ error: 'authentication required for tenant-scoped chat' }, { status: 401 });
+  }
+
+  const difyUserId = userId;
   const difyConversationId = (body as { difyConversationId?: string }).difyConversationId?.trim();
   const tenant = await resolveTenantContext({
     externalUserId: userId,
     userDisplayName: body.userDisplayName?.trim() || null,
   });
+
+  if (!tenant.tenantId) {
+    return NextResponse.json({ error: 'tenant context resolution failed' }, { status: 503 });
+  }
 
   if (!isDifyEnabled()) {
     return NextResponse.json(

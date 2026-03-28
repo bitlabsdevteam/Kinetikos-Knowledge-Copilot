@@ -18,7 +18,7 @@
   - Acceptance: Auth user deterministically resolves to one tenant_id; first-time users are provisioned safely.
   - Files: `lib/tenant-context.ts`, `app/api/chat/route.ts`
 
-- [ ] Task 5: Enforce tenant_id propagation in chat usage logs and retrieval logs writes (P0)
+- [x] Task 5: Enforce tenant_id propagation in chat usage logs and retrieval logs writes (P0)
   - Acceptance: New chat-related writes include tenant_id and reject missing tenant context.
   - Files: `lib/usage-log.ts`, `app/api/chat/route.ts`, related data helpers
 
