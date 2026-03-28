@@ -22,7 +22,7 @@
   - Acceptance: User can switch theme from UI; visual palette updates immediately.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
-- [ ] Task 6: Persist theme preference across reloads (P1)
+- [x] Task 6: Persist theme preference across reloads (P1)
   - Acceptance: Selected theme remains after refresh via localStorage restoration.
   - Files: `components/chat-shell.tsx`
 

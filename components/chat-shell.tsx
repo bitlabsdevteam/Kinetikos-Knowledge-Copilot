@@ -85,7 +85,15 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   }, [isSubmitting]);
 
   useEffect(() => {
+    const stored = window.localStorage.getItem('kinetikos_theme');
+    if (stored === 'dark' || stored === 'light') {
+      setTheme(stored);
+    }
+  }, []);
+
+  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('kinetikos_theme', theme);
   }, [theme]);
 
   const canSend = useMemo(
