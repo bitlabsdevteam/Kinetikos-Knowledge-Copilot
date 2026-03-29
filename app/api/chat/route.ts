@@ -79,13 +79,24 @@ export async function POST(request: Request) {
     response = result.response;
     conversationId = result.conversationId;
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Dify request failed',
-        backend,
+    const fallback = NextResponse.json({
+      answer: "I don't know based on the available Kinetikos sources.",
+      citations: [],
+      grounded: false,
+      suggestedQuestions: [],
+      sessionId,
+      sessionUserId: userId,
+      difyConversationId,
+      backend: 'dify-error',
+      warning: error instanceof Error ? error.message : 'Dify request failed',
+      tenantId: tenant.tenantId,
+      access: {
+        allowed: true,
+        effectiveLimit: policy.effectiveLimit,
       },
-      { status: 502 },
-    );
+    });
+    fallback.headers.set('x-rag-backend', 'dify-error');
+    return fallback;
   }
 
   await appendUsageLog({
