@@ -51,6 +51,12 @@ type ChatShellProps = {
   onLogout?: () => void;
 };
 
+type HistorySummary = {
+  sessionId: string;
+  latestAt: string;
+  preview: string;
+};
+
 export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
@@ -64,6 +70,8 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
   const [backendMode, setBackendMode] = useState<string>('dify');
+  const [historyItems, setHistoryItems] = useState<HistorySummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof window === 'undefined') return 'dark';
     const stored = window.localStorage.getItem('kinetikos_theme');
@@ -92,6 +100,29 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     document.documentElement.setAttribute('data-theme', theme);
     window.localStorage.setItem('kinetikos_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const effectiveUserId = userId ?? `anon-${sessionId}`;
+    let active = true;
+
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const res = await fetch(`/api/history?userId=${encodeURIComponent(effectiveUserId)}&limit=20`);
+        if (!res.ok) return;
+        const payload = (await res.json()) as { conversations?: HistorySummary[] };
+        if (active) setHistoryItems(payload.conversations ?? []);
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    };
+
+    void loadHistory();
+
+    return () => {
+      active = false;
+    };
+  }, [userId, sessionId]);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
@@ -223,6 +254,25 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
           <div className="brand-block">
             <p className="eyebrow">Kinetikos</p>
             <h1>Clinical Agentic RAG</h1>
+          </div>
+
+          <div className="rail-card">
+            <span className="rail-label">History</span>
+            {historyLoading ? <p>Loading history…</p> : null}
+            {!historyLoading && historyItems.length === 0 ? <p>No conversations yet.</p> : null}
+            {historyItems.slice(0, 8).map((item) => (
+              <button
+                key={item.sessionId}
+                type="button"
+                className="suggestion-chip"
+                onClick={() => {
+                  setSessionId(item.sessionId);
+                  setDifyConversationId(undefined);
+                }}
+              >
+                {item.preview}
+              </button>
+            ))}
           </div>
 
           <div className="rail-card">

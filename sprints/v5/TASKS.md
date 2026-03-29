@@ -6,7 +6,7 @@
   - Acceptance: API returns conversation summaries sorted by latest activity for current user/tenant.
   - Files: `app/api/history/route.ts`, tenant/history helpers
 
-- [ ] Task 2: Build left-side History Window UI and connect to history API (P0)
+- [x] Task 2: Build left-side History Window UI and connect to history API (P0)
   - Acceptance: User sees conversation list in left rail and can select an item.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
