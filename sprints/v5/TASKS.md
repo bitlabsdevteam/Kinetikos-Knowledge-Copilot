@@ -14,7 +14,7 @@
   - Acceptance: Selecting history item hydrates messages and conversation context for continued chat.
   - Files: `components/chat-shell.tsx`, `app/api/chat/route.ts`
 
-- [ ] Task 4: Improve memory continuity logic for RAG session recall (P0)
+- [x] Task 4: Improve memory continuity logic for RAG session recall (P0)
   - Acceptance: Follow-up responses reflect prior turns consistently within active/reopened conversation.
   - Files: `app/api/chat/route.ts`, `lib/usage-log.ts`, memory helpers
 

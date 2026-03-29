@@ -204,6 +204,10 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
       }).catch(() => undefined);
     }
 
+    if (sessionId) {
+      window.localStorage.removeItem(`kinetikos_dify_conv_${sessionId}`);
+    }
+
     setDifyConversationId(undefined);
     setSessionId(crypto.randomUUID());
     setMessages(starterMessages);
