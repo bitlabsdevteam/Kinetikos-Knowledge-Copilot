@@ -24,13 +24,14 @@ export function evaluateAccessPolicy(ctx: AccessContext): AccessDecision {
   const permissions = new Set((ctx.permissions ?? []).map((p) => p.toLowerCase()));
   const effectiveLimit = ctx.usageLimitOverride ?? DEFAULT_LIMITS[level] ?? DEFAULT_LIMITS.basic;
   const usage = ctx.usageCountToday ?? 0;
+  const hasExplicitPermissionPayload = Array.isArray(ctx.permissions);
 
   if (permissions.has('rag:deny')) {
     return { allowed: false, reason: 'access denied by permission policy', effectiveLimit };
   }
 
-  if (!permissions.has('rag:chat') && level === 'basic') {
-    return { allowed: false, reason: 'missing rag:chat permission for basic member', effectiveLimit };
+  if (hasExplicitPermissionPayload && !permissions.has('rag:chat')) {
+    return { allowed: false, reason: 'missing rag:chat permission', effectiveLimit };
   }
 
   if (usage >= effectiveLimit) {
