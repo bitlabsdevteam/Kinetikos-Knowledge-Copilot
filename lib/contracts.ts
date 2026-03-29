@@ -47,4 +47,5 @@ export type ChatResponse = {
   sessionUserId?: string | null;
   difyConversationId?: string;
   backend?: string;
+  warning?: string;
 };

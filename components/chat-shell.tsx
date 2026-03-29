@@ -77,6 +77,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [backendWarning, setBackendWarning] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
   const [enableInternetSearch, setEnableInternetSearch] = useState(false);
@@ -442,6 +443,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
             </div>
 
             {error ? <p className="composer-error">{error}</p> : null}
+            {backendWarning ? <p className="composer-error">Backend warning: {backendWarning}</p> : null}
           </footer>
         </section>
       </section>
