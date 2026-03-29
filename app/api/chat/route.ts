@@ -18,6 +18,7 @@ export async function POST(request: Request) {
   }
 
   const message = body.message.trim();
+  const isJapanese = /[\u3040-\u30ff\u4e00-\u9faf]/.test(message);
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
   const userId = body.userId?.trim() || null;
   const effectiveUserId = userId ?? `anon-${sessionId}`;
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
         session_id: sessionId,
         user_display_name: body.userDisplayName?.trim() || null,
         tenant_id: tenant.tenantId,
+        preferred_language: isJapanese ? 'ja' : 'en',
       },
     });
 

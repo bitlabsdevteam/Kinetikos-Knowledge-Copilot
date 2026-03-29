@@ -58,6 +58,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    const supabase = createBrowserSupabaseClient();
     const emailRedirectTo = resolveCallbackUrl();
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,

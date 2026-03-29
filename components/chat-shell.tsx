@@ -16,8 +16,21 @@ const starterMessages: ChatMessage[] = [
 
 const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
 
+function isJapaneseText(text: string): boolean {
+  return /[\u3040-\u30ff\u4e00-\u9faf]/.test(text);
+}
+
 function fallbackSuggestions(fromPrompt: string): string[] {
   const topic = fromPrompt.trim().slice(0, 80);
+
+  if (isJapaneseText(fromPrompt)) {
+    return [
+      `この内容を3つの要点で要約して。${topic ? `（${topic}）` : ''}`,
+      'この回答のリスク・制限・注意点は？',
+      '次に確認すべき質問は？',
+    ];
+  }
+
   return [
     `Can you summarize this in 3 key points?${topic ? ` (${topic})` : ''}`,
     'What are the risks, limitations, or contraindications?',

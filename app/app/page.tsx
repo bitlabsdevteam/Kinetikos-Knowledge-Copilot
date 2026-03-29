@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ChatShell } from '@/components/chat-shell';
 import { createBrowserSupabaseClient } from '@/lib/supabase-client';
@@ -8,7 +8,6 @@ import { createBrowserSupabaseClient } from '@/lib/supabase-client';
 export default function WorkspacePage() {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
-  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   useEffect(() => {
     let mounted = true;
@@ -24,6 +23,7 @@ export default function WorkspacePage() {
         return;
       }
 
+      const supabase = createBrowserSupabaseClient();
       const { data, error } = await supabase.auth.getSession();
 
       if (!mounted) return;
@@ -39,18 +39,19 @@ export default function WorkspacePage() {
       setIsChecking(false);
     }
 
-    checkSession();
+    void checkSession();
 
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, []);
 
   if (isChecking) {
     return <main style={{ padding: 24 }}>Checking authentication…</main>;
   }
 
   const handleLogout = async () => {
+    const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
     setIsAuthed(false);
     window.location.href = '/login';
