@@ -18,7 +18,7 @@
   - Acceptance: Follow-up responses reflect prior turns consistently within active/reopened conversation.
   - Files: `app/api/chat/route.ts`, `lib/usage-log.ts`, memory helpers
 
-- [ ] Task 5: Japanese UX support pass (P1)
+- [x] Task 5: Japanese UX support pass (P1)
   - Acceptance: Japanese input/output UX is stable; copy and suggestions handle Japanese naturally.
   - Files: `components/chat-shell.tsx`, `lib/dify-client.ts`
 
