@@ -10,7 +10,7 @@
   - Acceptance: User sees conversation list in left rail and can select an item.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
-- [ ] Task 3: Load selected conversation into chat panel and restore memory context (P0)
+- [x] Task 3: Load selected conversation into chat panel and restore memory context (P0)
   - Acceptance: Selecting history item hydrates messages and conversation context for continued chat.
   - Files: `components/chat-shell.tsx`, `app/api/chat/route.ts`
 

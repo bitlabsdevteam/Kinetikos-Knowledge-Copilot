@@ -265,9 +265,29 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 key={item.sessionId}
                 type="button"
                 className="suggestion-chip"
-                onClick={() => {
-                  setSessionId(item.sessionId);
-                  setDifyConversationId(undefined);
+                onClick={async () => {
+                  const effectiveUserId = userId ?? `anon-${sessionId}`;
+                  const res = await fetch(
+                    `/api/history/${encodeURIComponent(item.sessionId)}?userId=${encodeURIComponent(effectiveUserId)}`,
+                  );
+                  if (!res.ok) return;
+
+                  const payload = (await res.json()) as {
+                    sessionId: string;
+                    difyConversationId?: string | null;
+                    messages?: Array<{ role: 'user' | 'assistant'; text: string }>;
+                  };
+
+                  setSessionId(payload.sessionId);
+                  setDifyConversationId(payload.difyConversationId ?? undefined);
+                  setMessages([
+                    ...starterMessages,
+                    ...(payload.messages ?? []).map((m) => ({
+                      id: crypto.randomUUID(),
+                      role: m.role,
+                      text: m.text,
+                    })),
+                  ]);
                 }}
               >
                 {item.preview}
