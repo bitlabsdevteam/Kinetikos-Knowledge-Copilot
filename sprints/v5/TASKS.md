@@ -30,22 +30,22 @@
   - Acceptance: Preserve source titles/domains, one-click verified links only, and hide blocked/internal citations by default.
   - Files: `components/chat-shell.tsx`, `lib/dify-client.ts`, `lib/contracts.ts`
 
-- [ ] Task 7: Redesign top menu banner using frontend-design quality standards (P1)
+- [x] Task 7: Redesign top menu banner using frontend-design quality standards (P1)
   - Acceptance: Banner is visually upgraded, responsive, and navigation clarity improves.
   - Files: `components/chat-shell.tsx`, `app/globals.css`
 
-- [ ] Task 8: Add tests for history load, memory continuity, citation toggle, and Japanese input flow (P1)
+- [x] Task 8: Add tests for history load, memory continuity, citation toggle, and Japanese input flow (P1)
   - Acceptance: E2E/Integration tests validate key v5 flows.
   - Files: `tests/e2e/v5-*.spec.ts`, `tests/screenshots/`
 
-- [ ] Task 8.1: Stabilize history identity/session mapping (P0)
+- [x] Task 8.1: Stabilize history identity/session mapping (P0)
   - Acceptance: History consistently loads for anonymous and logged-in users across new sessions.
   - Files: `components/chat-shell.tsx`, `app/api/history/route.ts`, `app/api/history/[sessionId]/route.ts`
 
-- [ ] Task 8.2: Enforce signed member token for tenant/member-aware policy (P0)
+- [x] Task 8.2: Enforce signed member token for tenant/member-aware policy (P0)
   - Acceptance: Server rejects user/tenant override when signed token is present; tenant scoping is token-driven.
   - Files: `app/api/chat/route.ts`, `app/api/history/route.ts`, `app/api/history/[sessionId]/route.ts`, `lib/member-token.ts`
 
-- [ ] Task 9: Publish v5 walkthrough with demo steps and known gaps (P2)
+- [x] Task 9: Publish v5 walkthrough with demo steps and known gaps (P2)
   - Acceptance: `sprints/v5/WALKTHROUGH.md` created with reproducible run/test checklist.
   - Files: `sprints/v5/WALKTHROUGH.md`

@@ -110,23 +110,27 @@ export async function resolveTenantContext(params: {
     return { tenantId: getDefaultTenant(), source: 'default' };
   }
 
-  const existingUserId = await findUserId(externalUserId);
-  const userId = existingUserId ?? (await upsertUser(externalUserId, params.userDisplayName));
+  try {
+    const existingUserId = await findUserId(externalUserId);
+    const userId = existingUserId ?? (await upsertUser(externalUserId, params.userDisplayName));
 
-  if (!userId) {
+    if (!userId) {
+      return { tenantId: getDefaultTenant(), source: 'default' };
+    }
+
+    const existingTenant = await findMembershipTenantId(userId);
+    if (existingTenant) {
+      return { tenantId: existingTenant, source: 'membership' };
+    }
+
+    const tenantId = await upsertTenant(externalUserId);
+    if (!tenantId) {
+      return { tenantId: getDefaultTenant(), source: 'default' };
+    }
+
+    await upsertMembership(tenantId, userId);
+    return { tenantId, source: 'provisioned' };
+  } catch {
     return { tenantId: getDefaultTenant(), source: 'default' };
   }
-
-  const existingTenant = await findMembershipTenantId(userId);
-  if (existingTenant) {
-    return { tenantId: existingTenant, source: 'membership' };
-  }
-
-  const tenantId = await upsertTenant(externalUserId);
-  if (!tenantId) {
-    return { tenantId: getDefaultTenant(), source: 'default' };
-  }
-
-  await upsertMembership(tenantId, userId);
-  return { tenantId, source: 'provisioned' };
 }

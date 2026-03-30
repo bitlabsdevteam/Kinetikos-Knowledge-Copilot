@@ -48,25 +48,30 @@ export async function GET(request: Request) {
 
   for (const table of candidates) {
     const encodedTable = encodeURIComponent(table);
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/${encodedTable}?tenant_id=eq.${encodeURIComponent(
-        tenant.tenantId,
-      )}&user_id=eq.${encodeURIComponent(userId)}&select=session_id,user_message,assistant_answer,created_at,metadata&order=created_at.desc&limit=${limit}`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-          'Content-Type': 'application/json',
+
+    try {
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/${encodedTable}?tenant_id=eq.${encodeURIComponent(
+          tenant.tenantId,
+        )}&user_id=eq.${encodeURIComponent(userId)}&select=session_id,user_message,assistant_answer,created_at,metadata&order=created_at.desc&limit=${limit}`,
+        {
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+            'Content-Type': 'application/json',
+          },
         },
-      },
-    );
+      );
 
-    if (response.ok) {
-      rows = (await response.json()) as HistoryRow[];
-      break;
+      if (response.ok) {
+        rows = (await response.json()) as HistoryRow[];
+        break;
+      }
+
+      lastError = await response.text();
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'history fetch failed';
     }
-
-    lastError = await response.text();
   }
 
   if (!rows.length && lastError) {

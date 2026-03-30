@@ -267,18 +267,26 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
       <div className="ambient-orb ambient-orb-right" aria-hidden="true" />
 
       <header className="top-banner">
-        <div>
+        <div className="top-banner-brand">
           <p className="eyebrow">Kinetikos</p>
+          <h1>Knowledge Copilot</h1>
+          <p className="top-banner-subtitle">Grounded, Japanese-first clinical intelligence</p>
         </div>
+
+        <div className="top-banner-center">
+          <span className="top-pill">RAG Integrity Mode</span>
+          <span className="top-pill top-pill-soft">{enableInternetSearch ? 'Hybrid: Internal + Internet' : 'Internal Sources Only'}</span>
+        </div>
+
         <nav className="top-banner-nav" aria-label="Account navigation">
           {showLogout ? (
-            <button type="button" className="suggestion-chip" onClick={onLogout} disabled={!onLogout}>
+            <button type="button" className="top-banner-action top-banner-action-primary" onClick={onLogout} disabled={!onLogout}>
               Logout
             </button>
           ) : (
             <>
-              <a href="/login">Login</a>
-              <a href="/onboarding">Register</a>
+              <a className="top-banner-action" href="/login">Login</a>
+              <a className="top-banner-action top-banner-action-primary" href="/onboarding">Register</a>
             </>
           )}
         </nav>

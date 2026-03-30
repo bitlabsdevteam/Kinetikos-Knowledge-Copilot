@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('v4: IME composition prevents accidental submit on Enter', async ({ page }) => {
+test('v4: IME composition prevents accidental submit on Enter and requires Ctrl+Enter', async ({ page }) => {
   let chatCalls = 0;
 
   await page.route('**/api/chat', async (route) => {
@@ -29,6 +29,10 @@ test('v4: IME composition prevents accidental submit on Enter', async ({ page })
 
   await textbox.dispatchEvent('compositionend');
   await textbox.press('Enter');
+  expect(chatCalls).toBe(0);
+
+  await textbox.focus();
+  await page.keyboard.press('Control+Enter');
   await expect.poll(() => chatCalls).toBe(1);
 
   await page.screenshot({ path: 'tests/screenshots/task9-step1-ime-safe-enter.png', fullPage: true });
