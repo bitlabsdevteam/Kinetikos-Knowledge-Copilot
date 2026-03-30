@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap');
 
 :root {
   color-scheme: dark;
@@ -55,7 +55,7 @@ body {
     radial-gradient(circle at 85% 14%, rgba(40, 82, 128, 0.22), transparent 24%),
     linear-gradient(180deg, #08090d 0%, #0d1117 42%, #0a0c10 100%);
   color: var(--text);
-  font-family: 'IBM Plex Sans JP', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 
 :root[data-theme='light'] body {
@@ -110,10 +110,11 @@ a {
 
 .top-banner-brand h1 {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Manrope', sans-serif;
   font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  font-weight: 800;
   line-height: 0.95;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.02em;
 }
 
 .top-banner-subtitle {
@@ -221,9 +222,9 @@ a {
 
 .brand-block h1,
 .chat-panel-header h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .brand-block h1 {
@@ -261,6 +262,7 @@ a {
   color: var(--muted);
   line-height: 1.75;
   font-size: 0.98rem;
+  font-family: 'Source Serif 4', serif;
 }
 
 .rail-card {
@@ -412,7 +414,8 @@ a {
   margin: 0;
   white-space: pre-wrap;
   line-height: 1.9;
-  font-size: 1rem;
+  font-size: 1.02rem;
+  font-family: 'Source Serif 4', serif;
 }
 
 .message-text {
@@ -469,9 +472,10 @@ a {
 }
 
 .citation-head strong {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .citation-head span {
