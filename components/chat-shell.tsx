@@ -82,10 +82,21 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
   const [enableInternetSearch, setEnableInternetSearch] = useState(false);
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+  const [clientUserId] = useState(() => {
+    if (typeof window === 'undefined') return `anon-${crypto.randomUUID()}`;
+    const key = 'kinetikos_client_user_id';
+    const existing = window.localStorage.getItem(key);
+    if (existing) return existing;
+    const next = `anon-${crypto.randomUUID()}`;
+    window.localStorage.setItem(key, next);
+    return next;
+  });
   const [difyConversationId, setDifyConversationId] = useState<string | undefined>();
   const [backendMode, setBackendMode] = useState<string>('dify');
   const [historyItems, setHistoryItems] = useState<HistorySummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [showCitations, setShowCitations] = useState(true);
+  const [showBlockedCitations, setShowBlockedCitations] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof window === 'undefined') return 'dark';
     const stored = window.localStorage.getItem('kinetikos_theme');
@@ -116,7 +127,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
   }, [theme]);
 
   useEffect(() => {
-    const effectiveUserId = userId ?? `anon-${sessionId}`;
+    const effectiveUserId = userId ?? clientUserId;
     let active = true;
 
     const loadHistory = async () => {
@@ -136,7 +147,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     return () => {
       active = false;
     };
-  }, [userId, sessionId]);
+  }, [userId, clientUserId, sessionId]);
 
   const canSend = useMemo(
     () => input.trim().length > 0 && !isComposing && !isSubmitting,
@@ -154,6 +165,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     if (!preset) setInput('');
     setIsSubmitting(true);
     setError(null);
+    setBackendWarning(null);
     setLoadingStage(0);
 
     try {
@@ -164,10 +176,13 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
           message: text,
           history: nextHistory.map(({ role, text: messageText }) => ({ role, text: messageText })),
           sessionId,
-          userId: userId ?? undefined,
+          userId: userId ?? clientUserId,
           userDisplayName: userDisplayName ?? undefined,
           enableInternetSearch,
           difyConversationId,
+          accessContext: {
+            source: 'web',
+          },
         }),
       });
 
@@ -182,6 +197,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
 
       const payload = (await response.json()) as ChatResponse;
       if (payload.backend) setBackendMode(payload.backend);
+      if (payload.warning) setBackendWarning(payload.warning);
       if (payload.difyConversationId) setDifyConversationId(payload.difyConversationId);
 
       const safeSuggestions =
@@ -227,6 +243,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     setMessages(starterMessages);
     setInput('');
     setError(null);
+    setBackendWarning(null);
     setIsSubmitting(false);
   };
 
@@ -234,14 +251,14 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
     const nativeEvent = event.nativeEvent as unknown as { isComposing?: boolean; keyCode?: number };
     const composing = isComposing || nativeEvent.isComposing || nativeEvent.keyCode === 229;
 
-    if (event.key === 'Enter' && !event.shiftKey) {
-      if (composing) {
-        event.preventDefault();
-        return;
-      }
-      event.preventDefault();
-      void sendMessage();
-    }
+    if (event.key !== 'Enter') return;
+    if (composing) return;
+
+    const wantsSend = (event.ctrlKey || event.metaKey) && !event.shiftKey;
+    if (!wantsSend) return;
+
+    event.preventDefault();
+    void sendMessage();
   };
 
   return (
@@ -284,7 +301,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 type="button"
                 className="suggestion-chip"
                 onClick={async () => {
-                  const effectiveUserId = userId ?? `anon-${sessionId}`;
+                  const effectiveUserId = userId ?? clientUserId;
                   const res = await fetch(
                     `/api/history/${encodeURIComponent(item.sessionId)}?userId=${encodeURIComponent(effectiveUserId)}`,
                   );
@@ -325,6 +342,26 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 {enableInternetSearch ? 'ON' : 'OFF'}
               </button>
             </label>
+            <label className="toggle-row">
+              <span>Show citations</span>
+              <button
+                type="button"
+                className={`toggle ${showCitations ? 'toggle-on' : ''}`}
+                onClick={() => setShowCitations((v) => !v)}
+              >
+                {showCitations ? 'ON' : 'OFF'}
+              </button>
+            </label>
+            <label className="toggle-row">
+              <span>Show blocked/internal citations</span>
+              <button
+                type="button"
+                className={`toggle ${showBlockedCitations ? 'toggle-on' : ''}`}
+                onClick={() => setShowBlockedCitations((v) => !v)}
+              >
+                {showBlockedCitations ? 'ON' : 'OFF'}
+              </button>
+            </label>
             <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
           </div>
         </aside>
@@ -356,34 +393,44 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 </div>
                 <div className="message-text">{renderMessageText(message.text)}</div>
 
-                {message.citations && message.citations.length > 0 ? (
+                {showCitations && message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
                     <p className="suggestion-title">Sources</p>
-                    {message.citations.map((citation) => {
-                      const content = (
-                        <>
-                          <div className="citation-head">
-                            <strong>{citation.title}</strong>
-                            <span>{citation.sourceType}</span>
-                          </div>
-                          <p>{citation.excerpt}</p>
-                        </>
-                      );
+                    {message.citations
+                      .filter((citation) => showBlockedCitations || citation.citable !== false)
+                      .map((citation) => {
+                        const domain = citation.domain ?? (() => {
+                          try {
+                            return new URL(citation.href).hostname.replace(/^www\./, '');
+                          } catch {
+                            return 'internal source';
+                          }
+                        })();
 
-                      if (citation.href && citation.href !== '#') {
-                        return (
-                          <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
-                            {content}
-                          </a>
+                        const content = (
+                          <>
+                            <div className="citation-head">
+                              <strong>{citation.title}</strong>
+                              <span>{domain}</span>
+                            </div>
+                            <p>{citation.excerpt}</p>
+                          </>
                         );
-                      }
 
-                      return (
-                        <div key={citation.id} className="citation-card citation-card-disabled">
-                          {content}
-                        </div>
-                      );
-                    })}
+                        if (citation.href && citation.href !== '#') {
+                          return (
+                            <a key={citation.id} className="citation-card" href={citation.href} target="_blank" rel="noreferrer">
+                              {content}
+                            </a>
+                          );
+                        }
+
+                        return showBlockedCitations ? (
+                          <div key={citation.id} className="citation-card citation-card-disabled">
+                            {content}
+                          </div>
+                        ) : null;
+                      })}
                   </div>
                 ) : null}
 
@@ -416,7 +463,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
           <footer className="composer-shell">
             <div className="composer-intro">
               <span className="rail-label">Prompt</span>
-              <p>Agent decides tool calls. Unsupported answers return “I don&apos;t know.”</p>
+              <p>Agent decides tool calls. Unsupported answers return “I don&apos;t know.” Send with Ctrl/Cmd + Enter.</p>
             </div>
 
             <div className="composer">

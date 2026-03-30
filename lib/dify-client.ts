@@ -29,16 +29,38 @@ export function isDifyEnabled() {
   return Boolean(DIFY_API_KEY);
 }
 
+function safeDomain(href: string): string | undefined {
+  try {
+    return new URL(href).hostname.replace(/^www\./, '');
+  } catch {
+    return undefined;
+  }
+}
+
+function isTrustedHttpUrl(href: string): boolean {
+  try {
+    const u = new URL(href);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function mapCitations(resources: DifyRetrieverResource[] = []): ChatResponse['citations'] {
   return resources.slice(0, 4).map((r, i) => {
     const trustedTitle = r.document_name?.trim();
-    const href = r.source_url?.trim() || r.url?.trim() || r.link?.trim() || '#';
+    const candidateHref = r.source_url?.trim() || r.url?.trim() || r.link?.trim() || '';
+    const citable = isTrustedHttpUrl(candidateHref);
+    const href = citable ? candidateHref : '#';
+
     return {
       id: r.segment_id ?? `${r.document_id ?? 'doc'}-${i}`,
       title: trustedTitle && trustedTitle.length > 0 ? trustedTitle : `Document ${String(r.document_id ?? i).slice(0, 8)}`,
       sourceType: 'manual',
       href,
       excerpt: (r.segment ?? '').slice(0, 180),
+      domain: citable ? safeDomain(href) : undefined,
+      citable,
     };
   });
 }

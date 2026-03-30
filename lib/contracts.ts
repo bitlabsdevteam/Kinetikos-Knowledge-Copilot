@@ -14,6 +14,8 @@ export type Citation = {
   sourceType: 'article' | 'video' | 'manual';
   href: string;
   excerpt: string;
+  domain?: string;
+  citable?: boolean;
 };
 
 export type ChatHistoryEntry = Pick<ChatMessage, 'role' | 'text'>;

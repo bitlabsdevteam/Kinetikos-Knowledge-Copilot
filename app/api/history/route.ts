@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { readMemberContextFromRequest } from '@/lib/member-token';
 import { resolveTenantContext } from '@/lib/tenant-context';
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,14 +24,22 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const userId = url.searchParams.get('userId')?.trim();
+  const tokenContext = readMemberContextFromRequest(request);
+  const queryUserId = url.searchParams.get('userId')?.trim();
+  const userId = tokenContext?.userId ?? queryUserId;
   const limit = Math.min(Number(url.searchParams.get('limit') ?? 50), 100);
+
+  if (tokenContext && queryUserId && queryUserId !== tokenContext.userId) {
+    return NextResponse.json({ error: 'forbidden user override attempt' }, { status: 403 });
+  }
 
   if (!userId) {
     return NextResponse.json({ error: 'userId is required' }, { status: 400 });
   }
 
-  const tenant = await resolveTenantContext({ externalUserId: userId });
+  const tenant = tokenContext
+    ? { tenantId: tokenContext.tenantId, source: 'membership' as const }
+    : await resolveTenantContext({ externalUserId: userId });
 
   const candidates = [process.env.SUPABASE_CONVERSATION_TABLE, 'customer_conversation_history', 'History'].filter(Boolean) as string[];
 

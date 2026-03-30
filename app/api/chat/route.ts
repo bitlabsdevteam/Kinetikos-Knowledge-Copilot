@@ -4,6 +4,7 @@ import { validateAccessContext } from '@/lib/access-context';
 import { evaluateAccessPolicy } from '@/lib/access-policy';
 import type { ChatRequest } from '@/lib/contracts';
 import { chatWithDify, isDifyEnabled } from '@/lib/dify-client';
+import { readMemberContextFromRequest } from '@/lib/member-token';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import { appendUsageLog } from '@/lib/usage-log';
 
@@ -20,7 +21,14 @@ export async function POST(request: Request) {
   const message = body.message.trim();
   const isJapanese = /[\u3040-\u30ff\u4e00-\u9faf]/.test(message);
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
-  const userId = body.userId?.trim() || null;
+  const tokenContext = readMemberContextFromRequest(request);
+  const bodyUserId = body.userId?.trim() || null;
+
+  if (tokenContext && bodyUserId && bodyUserId !== tokenContext.userId) {
+    return NextResponse.json({ error: 'forbidden user override attempt' }, { status: 403 });
+  }
+
+  const userId = tokenContext?.userId ?? bodyUserId;
   const effectiveUserId = userId ?? `anon-${sessionId}`;
 
   const accessValidation = validateAccessContext(body.accessContext);
@@ -28,17 +36,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: accessValidation.error, code: 'invalid_access_context' }, { status: 400 });
   }
 
-  const policy = evaluateAccessPolicy(accessValidation.value);
+  const mergedAccessContext = {
+    ...accessValidation.value,
+    memberLevel: tokenContext?.memberLevel ?? accessValidation.value.memberLevel,
+    permissions: tokenContext ? tokenContext.scopes : accessValidation.value.permissions,
+    usageCountToday: tokenContext?.usageCountToday ?? accessValidation.value.usageCountToday,
+    usageLimitOverride: tokenContext?.usageLimitOverride ?? accessValidation.value.usageLimitOverride,
+    source: tokenContext ? 'craft-cms' : accessValidation.value.source,
+  };
+
+  const policy = evaluateAccessPolicy(mergedAccessContext);
   if (!policy.allowed) {
     return NextResponse.json({ error: policy.reason, code: 'policy_denied' }, { status: 403 });
   }
 
   const difyConversationId = body.difyConversationId?.trim();
   const requestedTenantId = body.tenantId?.trim();
-  const tenant = await resolveTenantContext({
-    externalUserId: effectiveUserId,
-    userDisplayName: body.userDisplayName?.trim() || null,
-  });
+
+  if (tokenContext?.tenantId && requestedTenantId && requestedTenantId !== tokenContext.tenantId) {
+    return NextResponse.json({ error: 'forbidden tenant override attempt' }, { status: 403 });
+  }
+
+  const tenant = tokenContext
+    ? { tenantId: tokenContext.tenantId, source: 'membership' as const }
+    : await resolveTenantContext({
+        externalUserId: effectiveUserId,
+        userDisplayName: body.userDisplayName?.trim() || null,
+      });
 
   if (!tenant.tenantId) {
     return NextResponse.json({ error: 'tenant context resolution failed' }, { status: 503 });
