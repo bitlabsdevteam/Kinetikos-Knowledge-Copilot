@@ -62,6 +62,7 @@ function renderMessageText(text: string): ReactNode {
 type ChatShellProps = {
   showLogout?: boolean;
   onLogout?: () => void;
+  isAdmin?: boolean;
 };
 
 type HistorySummary = {
@@ -70,7 +71,7 @@ type HistorySummary = {
   preview: string;
 };
 
-export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
+export function ChatShell({ showLogout = false, onLogout, isAdmin = false }: ChatShellProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
@@ -338,41 +339,43 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
             ))}
           </div>
 
-          <div className="rail-card">
-            <span className="rail-label">Agent controls</span>
-            <label className="toggle-row">
-              <span>Enable Internet Search</span>
-              <button
-                type="button"
-                className={`toggle ${enableInternetSearch ? 'toggle-on' : ''}`}
-                onClick={() => setEnableInternetSearch((v) => !v)}
-              >
-                {enableInternetSearch ? 'ON' : 'OFF'}
-              </button>
-            </label>
-            <label className="toggle-row">
-              <span>Show citations</span>
-              <button
-                type="button"
-                className={`toggle ${showCitations ? 'toggle-on' : ''}`}
-                onClick={() => setShowCitations((v) => !v)}
-              >
-                {showCitations ? 'ON' : 'OFF'}
-              </button>
-            </label>
-            <label className="toggle-row">
-              <span>Show blocked/internal citations</span>
-              <button
-                type="button"
-                className={`toggle ${showBlockedCitations ? 'toggle-on' : ''}`}
-                onClick={() => setShowBlockedCitations((v) => !v)}
-              >
-                {showBlockedCitations ? 'ON' : 'OFF'}
-              </button>
-            </label>
-            <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
-            <p>Citation logic: shown only when retriever returns trusted sources and "Show citations" is ON. Non-citable/internal sources stay hidden unless explicitly enabled.</p>
-          </div>
+          {isAdmin ? (
+            <div className="rail-card">
+              <span className="rail-label">Agent controls</span>
+              <label className="toggle-row">
+                <span>Enable Internet Search</span>
+                <button
+                  type="button"
+                  className={`toggle ${enableInternetSearch ? 'toggle-on' : ''}`}
+                  onClick={() => setEnableInternetSearch((v) => !v)}
+                >
+                  {enableInternetSearch ? 'ON' : 'OFF'}
+                </button>
+              </label>
+              <label className="toggle-row">
+                <span>Show citations</span>
+                <button
+                  type="button"
+                  className={`toggle ${showCitations ? 'toggle-on' : ''}`}
+                  onClick={() => setShowCitations((v) => !v)}
+                >
+                  {showCitations ? 'ON' : 'OFF'}
+                </button>
+              </label>
+              <label className="toggle-row">
+                <span>Show blocked/internal citations</span>
+                <button
+                  type="button"
+                  className={`toggle ${showBlockedCitations ? 'toggle-on' : ''}`}
+                  onClick={() => setShowBlockedCitations((v) => !v)}
+                >
+                  {showBlockedCitations ? 'ON' : 'OFF'}
+                </button>
+              </label>
+              <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
+              <p>Citation logic: shown only when retriever returns trusted sources and "Show citations" is ON. Non-citable/internal sources stay hidden unless explicitly enabled.</p>
+            </div>
+          ) : null}
         </aside>
 
         <section className="chat-panel">

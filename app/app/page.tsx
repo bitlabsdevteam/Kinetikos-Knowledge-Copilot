@@ -8,6 +8,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase-client';
 export default function WorkspacePage() {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -19,6 +20,7 @@ export default function WorkspacePage() {
 
       if (bypass) {
         setIsAuthed(true);
+        setIsAdmin(true);
         setIsChecking(false);
         return;
       }
@@ -35,7 +37,16 @@ export default function WorkspacePage() {
         return;
       }
 
+      const user = data.session.user;
+      const role = (user.app_metadata?.role ?? user.user_metadata?.role ?? '').toString().toLowerCase();
+      const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
+        .split(',')
+        .map((v) => v.trim().toLowerCase())
+        .filter(Boolean);
+      const isEmailAdmin = Boolean(user.email && adminEmails.includes(user.email.toLowerCase()));
+
       setIsAuthed(true);
+      setIsAdmin(role === 'admin' || isEmailAdmin);
       setIsChecking(false);
     }
 
@@ -61,5 +72,5 @@ export default function WorkspacePage() {
     return <main style={{ padding: 24 }}>Redirecting to login…</main>;
   }
 
-  return <ChatShell showLogout onLogout={handleLogout} />;
+  return <ChatShell showLogout onLogout={handleLogout} isAdmin={isAdmin} />;
 }
