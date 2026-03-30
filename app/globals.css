@@ -68,6 +68,7 @@ body {
 body {
   position: relative;
   overflow-x: hidden;
+  letter-spacing: 0.002em;
 }
 
 button,
@@ -484,6 +485,13 @@ a {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.7;
+}
+
+.citation-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-style: italic;
 }
 
 .loading-state {

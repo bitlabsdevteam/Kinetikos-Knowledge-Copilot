@@ -371,6 +371,7 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
               </button>
             </label>
             <p>OFF = internal vector DB only. ON = agent can call Perplexity search when internal evidence is insufficient.</p>
+            <p>Citation logic: shown only when retriever returns trusted sources and "Show citations" is ON. Non-citable/internal sources stay hidden unless explicitly enabled.</p>
           </div>
         </aside>
 
@@ -404,6 +405,9 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                 {showCitations && message.citations && message.citations.length > 0 ? (
                   <div className="citation-list">
                     <p className="suggestion-title">Sources</p>
+                    {message.citations.filter((citation) => showBlockedCitations || citation.citable !== false).length === 0 ? (
+                      <p className="citation-note">No public citations shown (current setting hides internal/non-citable sources).</p>
+                    ) : null}
                     {message.citations
                       .filter((citation) => showBlockedCitations || citation.citable !== false)
                       .map((citation) => {
@@ -440,6 +444,10 @@ export function ChatShell({ showLogout = false, onLogout }: ChatShellProps) {
                         ) : null;
                       })}
                   </div>
+                ) : null}
+
+                {message.role === 'assistant' && (!message.citations || message.citations.length === 0) ? (
+                  <p className="citation-note">No citations returned by retrieval for this answer.</p>
                 ) : null}
 
                 {message.role === 'assistant' ? (
