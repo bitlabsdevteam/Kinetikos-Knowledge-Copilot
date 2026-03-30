@@ -33,6 +33,7 @@ export type ChatRequest = {
   message: string;
   history: ChatHistoryEntry[];
   enableInternetSearch?: boolean;
+  desiredLanguage?: 'ja' | 'en';
   sessionId?: string;
   userId?: string;
   userDisplayName?: string;

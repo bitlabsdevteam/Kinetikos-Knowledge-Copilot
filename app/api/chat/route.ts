@@ -20,6 +20,7 @@ export async function POST(request: Request) {
 
   const message = body.message.trim();
   const isJapanese = /[\u3040-\u30ff\u4e00-\u9faf]/.test(message);
+  const preferredLanguage = body.desiredLanguage === 'ja' || body.desiredLanguage === 'en' ? body.desiredLanguage : isJapanese ? 'ja' : 'en';
   const sessionId = body.sessionId?.trim() || crypto.randomUUID();
   const tokenContext = readMemberContextFromRequest(request);
   const bodyUserId = body.userId?.trim() || null;
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
         session_id: sessionId,
         user_display_name: body.userDisplayName?.trim() || null,
         tenant_id: tenant.tenantId,
-        preferred_language: isJapanese ? 'ja' : 'en',
+        preferred_language: preferredLanguage,
       },
     });
 

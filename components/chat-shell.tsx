@@ -16,6 +16,23 @@ const starterMessages: ChatMessage[] = [
 
 const LOADING_STAGES = ['Thinking…', 'Grounding against internal sources…', 'Composing evidence-based answer…'];
 
+type UiLang = 'ja' | 'en';
+
+const UI_COPY: Record<UiLang, { prompt: string; sendHint: string; inputPlaceholder: string; noCitations: string }> = {
+  ja: {
+    prompt: 'プロンプト',
+    sendHint: 'Ctrl/Cmd + Enter で送信',
+    inputPlaceholder: '例：今週の高タンパク食事準備の優先事項は？',
+    noCitations: 'この回答では参照可能な引用が見つかりませんでした。',
+  },
+  en: {
+    prompt: 'Prompt',
+    sendHint: 'Send with Ctrl/Cmd + Enter',
+    inputPlaceholder: 'Example: What are high-protein meal preparation priorities for this week?',
+    noCitations: 'No citations returned by retrieval for this answer.',
+  },
+};
+
 function isJapaneseText(text: string): boolean {
   return /[\u3040-\u30ff\u4e00-\u9faf]/.test(text);
 }
@@ -103,6 +120,10 @@ export function ChatShell({ showLogout = false, onLogout, isAdmin = false }: Cha
     const stored = window.localStorage.getItem('kinetikos_theme');
     return stored === 'light' || stored === 'dark' ? stored : 'dark';
   });
+  const [uiLang, setUiLang] = useState<UiLang>(() => {
+    if (typeof window === 'undefined') return 'en';
+    return window.navigator.language.toLowerCase().startsWith('ja') ? 'ja' : 'en';
+  });
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -180,6 +201,7 @@ export function ChatShell({ showLogout = false, onLogout, isAdmin = false }: Cha
           userId: userId ?? clientUserId,
           userDisplayName: userDisplayName ?? undefined,
           enableInternetSearch,
+          desiredLanguage: uiLang,
           difyConversationId,
           accessContext: {
             source: 'web',
@@ -450,7 +472,7 @@ export function ChatShell({ showLogout = false, onLogout, isAdmin = false }: Cha
                 ) : null}
 
                 {message.role === 'assistant' && (!message.citations || message.citations.length === 0) ? (
-                  <p className="citation-note">No citations returned by retrieval for this answer.</p>
+                  <p className="citation-note">{UI_COPY[uiLang].noCitations}</p>
                 ) : null}
 
                 {message.role === 'assistant' ? (
@@ -481,18 +503,24 @@ export function ChatShell({ showLogout = false, onLogout, isAdmin = false }: Cha
 
           <footer className="composer-shell">
             <div className="composer-intro">
-              <span className="rail-label">Prompt</span>
-              <p>Agent decides tool calls. Unsupported answers return “I don&apos;t know.” Send with Ctrl/Cmd + Enter.</p>
+              <span className="rail-label">{UI_COPY[uiLang].prompt}</span>
+              <p>{UI_COPY[uiLang].sendHint}</p>
             </div>
 
             <div className="composer">
               <textarea
                 value={input}
-                onChange={(event) => setInput(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setInput(next);
+                  if (next.trim().length > 0) {
+                    setUiLang(/[\u3040-\u30ff\u4e00-\u9faf]/.test(next) ? 'ja' : 'en');
+                  }
+                }}
                 onKeyDown={onKeyDown}
                 onCompositionStart={() => setIsComposing(true)}
                 onCompositionEnd={() => setIsComposing(false)}
-                placeholder="Example: What are high-protein meal preparation priorities for this week?"
+                placeholder={UI_COPY[uiLang].inputPlaceholder}
                 rows={5}
               />
 
